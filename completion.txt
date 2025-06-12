@@ -1,0 +1,31 @@
+What we roughly have so far:
+
+Have Video 
+
+->
+
+Have frame splititng with OpenCV 
+
+-> 
+
+Have YOLO object detection
+
+->
+
+Have Pass text from YOLO to embedding generator
+
+-> 
+
+Have embeddings produce vector
+
+-> 
+
+MISSING SIMILARITY SEARCH
+
+-> 
+
+MISSING MATCHING AND DECISION (next frame or finish)
+
+->
+
+MISSING SYSTEM OUTPUT (ex: "red ball found found at 1:34")
