@@ -1,0 +1,1078 @@
+#!/usr/bin/env python3
+r"""
+Simplified Intelligent Drone Mission Planning System
+Combines geographic context, object detection, and optimization for smart flight planning.
+
+Run with: C:\OSGeo4W\bin\python-qgis.bat simplified_drone_mission.py
+"""
+
+import os
+import json
+import logging
+import numpy as np
+from pathlib import Path
+from typing import Dict, List, Tuple, Optional, Any
+from dataclasses import dataclass
+from enum import Enum
+from sklearn.cluster import KMeans
+import cv2
+from PIL import Image
+import torch
+from ultralytics import YOLO
+from sentence_transformers import SentenceTransformer
+
+# Import map extraction components
+from map_extract import (
+    FlightPlan, FlightPoint, FlightPlanParser, 
+    QGISMapGenerator, generate_flight_context_map
+)
+
+# Setup logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+# =============================================================================
+# DATA STRUCTURES
+# =============================================================================
+
+class MissionType(Enum):
+    SEARCH = "search"
+    SURVEY = "survey"
+    INSPECTION = "inspection"
+    MONITORING = "monitoring"
+
+@dataclass
+class MissionObjective:
+    """Simple mission objective structure"""
+    mission_type: MissionType
+    target_objects: List[str]
+    user_goal: str
+    
+@dataclass
+class SceneObservation:
+    """Observation from a specific scene/location"""
+    frame_id: int
+    timestamp: float
+    gps_coords: Tuple[float, float, float]  # lat, lon, alt
+    detected_objects: List[str]
+    scene_description: str
+    relevance_score: float  # How relevant to mission objective
+
+@dataclass
+class OptimizationSuggestion:
+    """Suggestion for flight plan optimization"""
+    suggestion_type: str  # "route", "capture_rate", "altitude", etc.
+    location: Optional[Tuple[float, float]]  # GPS coords if location-specific
+    description: str
+    reason: str
+
+# =============================================================================
+# MISSION OBJECTIVE PARSER
+# =============================================================================
+
+class SimpleMissionParser:
+    """Parse user objectives into structured format"""
+    
+    def __init__(self):
+        self.target_keywords = {
+            "penguin": ["penguin", "penguins", "bird", "wildlife"],
+            "ice": ["ice", "glacier", "frozen", "iceberg"],
+            "water": ["water", "ocean", "sea", "lake", "river"],
+            "vehicle": ["car", "truck", "vehicle", "boat"],
+            "building": ["building", "structure", "house", "facility"],
+            "person": ["person", "people", "human", "hiker"]
+        }
+    
+    def parse_objective(self, user_input: str) -> MissionObjective:
+        """Parse natural language objective"""
+        user_input_lower = user_input.lower()
+        
+        # Determine mission type
+        if "find" in user_input_lower or "search" in user_input_lower:
+            mission_type = MissionType.SEARCH
+        elif "survey" in user_input_lower or "map" in user_input_lower:
+            mission_type = MissionType.SURVEY
+        elif "inspect" in user_input_lower or "check" in user_input_lower:
+            mission_type = MissionType.INSPECTION
+        else:
+            mission_type = MissionType.MONITORING
+        
+        # Extract target objects
+        target_objects = []
+        for target, keywords in self.target_keywords.items():
+            if any(keyword in user_input_lower for keyword in keywords):
+                target_objects.append(target)
+        
+        return MissionObjective(
+            mission_type=mission_type,
+            target_objects=target_objects,
+            user_goal=user_input
+        )
+
+# =============================================================================
+# SCENE CLUSTERING
+# =============================================================================
+
+class SceneClusterer:
+    """Cluster visually similar scenes"""
+    
+    def __init__(self, n_clusters=10):
+        self.n_clusters = n_clusters
+        self.model = None
+    
+    def cluster_embeddings(self, embedding_matrix: np.ndarray) -> Tuple[np.ndarray, Any]:
+        """
+        Cluster input embedding matrix into groups
+        
+        Args:
+            embedding_matrix: NxD numpy array (e.g., 1000 frames × 384-dim vectors)
+            
+        Returns:
+            labels: cluster labels for each frame
+            model: trained clustering model
+        """
+        self.model = KMeans(n_clusters=self.n_clusters, random_state=42)
+        labels = self.model.fit_predict(embedding_matrix)
+        return labels, self.model
+    
+    def assign_cluster_labels(self, embeddings: np.ndarray) -> np.ndarray:
+        """Assign pre-trained cluster model labels to new embeddings"""
+        if self.model is None:
+            raise ValueError("Model not trained yet")
+        return self.model.predict(embeddings)
+    
+    def find_redundant_scenes(self, labels: np.ndarray, threshold: float = 0.3) -> List[int]:
+        """Find clusters that appear too frequently (redundant scenes)"""
+        unique, counts = np.unique(labels, return_counts=True)
+        total_frames = len(labels)
+        
+        redundant_clusters = []
+        for cluster_id, count in zip(unique, counts):
+            if count / total_frames > threshold:
+                redundant_clusters.append(int(cluster_id))
+        
+        return redundant_clusters
+
+# =============================================================================
+# VIDEO ANALYZER WITH YOLO + SENTENCE TRANSFORMERS
+# =============================================================================
+
+class VideoAnalyzer:
+    """Analyze drone video with YOLO object detection and sentence transformers"""
+    
+    def __init__(self):
+        self.yolo_model = None
+        self.sentence_model = None
+        self.flight_plan = None
+        
+        # Model configuration
+        self.YOLO_MODEL_PATH = 'yolov8n-oiv7.pt'  # 600 classes model
+        self.SENTENCE_TRANSFORMER_MODEL = 'all-mpnet-base-v2'  # Better embeddings
+        
+        # Initialize models
+        self._initialize_models()
+    
+    def _initialize_models(self):
+        """Initialize YOLO and Sentence Transformer models"""
+        try:
+            # Initialize YOLO
+            logger.info(f"Loading YOLOv8-OIV7 model: {self.YOLO_MODEL_PATH}")
+            self.yolo_model = YOLO(self.YOLO_MODEL_PATH)
+            logger.info("✅ YOLOv8 model loaded successfully")
+            
+            # Initialize Sentence Transformer
+            logger.info(f"Loading Sentence Transformer: {self.SENTENCE_TRANSFORMER_MODEL}")
+            self.sentence_model = SentenceTransformer(self.SENTENCE_TRANSFORMER_MODEL)
+            logger.info(f"✅ Sentence Transformer loaded ({self.sentence_model.get_sentence_embedding_dimension()}-dim)")
+            
+        except Exception as e:
+            logger.error(f"Error initializing models: {e}")
+            raise
+    
+    def estimate_gps_from_flight_progress(self, frame_number: int, total_frames: int, 
+                                        flight_plan: FlightPlan) -> Tuple[float, float, float]:
+        """
+        Estimate GPS coordinates based on frame position in video and flight plan waypoints
+        
+        Args:
+            frame_number: Current frame number
+            total_frames: Total frames in video
+            flight_plan: The flight plan with waypoints
+            
+        Returns:
+            Estimated (lat, lon, alt) tuple
+        """
+        # Calculate progress through video (0.0 to 1.0)
+        progress = frame_number / total_frames
+        
+        # Map to flight plan waypoints (using every other waypoint for efficiency)
+        waypoints = flight_plan.points[::2]  # Every other waypoint
+        if len(waypoints) < 2:
+            waypoints = flight_plan.points  # Use all if too few
+        
+        # Calculate which segment of the flight path we're in
+        total_segments = len(waypoints) - 1
+        if total_segments <= 0:
+            # Only one waypoint, return it
+            wp = waypoints[0]
+            return (wp.lat, wp.lon, wp.alt if wp.alt else 100)
+        
+        segment_progress = progress * total_segments
+        segment_index = int(segment_progress)
+        segment_fraction = segment_progress - segment_index
+        
+        # Clamp to valid range
+        segment_index = min(segment_index, total_segments - 1)
+        
+        # Interpolate between waypoints
+        wp1 = waypoints[segment_index]
+        wp2 = waypoints[segment_index + 1]
+        
+        lat = wp1.lat + (wp2.lat - wp1.lat) * segment_fraction
+        lon = wp1.lon + (wp2.lon - wp1.lon) * segment_fraction
+        
+        # Handle altitude
+        alt1 = wp1.alt if wp1.alt else 100
+        alt2 = wp2.alt if wp2.alt else 100
+        alt = alt1 + (alt2 - alt1) * segment_fraction
+        
+        return (lat, lon, alt)
+    
+    def detect_objects_in_frame(self, frame):
+        """Detect objects in a single frame using YOLO"""
+        try:
+            # Run YOLO inference
+            results = self.yolo_model(frame, conf=0.25, iou=0.45, verbose=False)
+            result = results[0]
+            
+            if len(result.boxes) == 0:
+                return []
+            
+            detected_objects = []
+            
+            # Process each detection
+            for idx, box in enumerate(result.boxes):
+                # Get class name and confidence
+                class_id = int(box.cls.item())
+                label = result.names[class_id]
+                confidence = box.conf.item()
+                
+                # Get bounding box
+                coords = box.xyxy[0].cpu().numpy()
+                xmin, ymin, xmax, ymax = coords
+                
+                # Calculate object size
+                width = xmax - xmin
+                height = ymax - ymin
+                area = width * height
+                
+                # Size description
+                size_desc = ""
+                if area > 50000:
+                    size_desc = "large "
+                elif area < 10000:
+                    size_desc = "small "
+                
+                # Create simple caption for embedding
+                simple_caption = f"{size_desc}{label}"
+                
+                detected_objects.append({
+                    'label': label,
+                    'confidence': confidence,
+                    'caption': simple_caption,
+                    'bbox': {
+                        'xmin': float(xmin),
+                        'ymin': float(ymin),
+                        'xmax': float(xmax),
+                        'ymax': float(ymax)
+                    },
+                    'area': float(area)
+                })
+            
+            return detected_objects
+            
+        except Exception as e:
+            logger.error(f"Error in object detection: {e}")
+            return []
+    
+    def generate_scene_description(self, detected_objects, frame_position=""):
+        """Generate natural language description of the scene"""
+        if not detected_objects:
+            return "No significant objects detected in this area"
+        
+        # Count object types
+        object_counts = {}
+        for obj in detected_objects:
+            label = obj['label']
+            if label not in object_counts:
+                object_counts[label] = 0
+            object_counts[label] += 1
+        
+        # Build description
+        descriptions = []
+        for label, count in object_counts.items():
+            if count == 1:
+                descriptions.append(f"a {label}")
+            else:
+                descriptions.append(f"{count} {label}s")
+        
+        # Create natural sentence
+        if len(descriptions) == 1:
+            scene_desc = f"Scene shows {descriptions[0]}"
+        elif len(descriptions) == 2:
+            scene_desc = f"Scene shows {descriptions[0]} and {descriptions[1]}"
+        else:
+            scene_desc = f"Scene shows {', '.join(descriptions[:-1])}, and {descriptions[-1]}"
+        
+        # Add position context if provided
+        if frame_position:
+            scene_desc += f" {frame_position}"
+        
+        return scene_desc
+    
+    def calculate_relevance_score(self, detected_objects, mission_objective):
+        """Calculate how relevant detected objects are to mission objective"""
+        if not detected_objects or not mission_objective.target_objects:
+            return 0.0
+        
+        # Generate embeddings for detected objects
+        detected_captions = [obj['caption'] for obj in detected_objects]
+        if not detected_captions:
+            return 0.0
+        
+        detected_embeddings = self.sentence_model.encode(
+            detected_captions, 
+            normalize_embeddings=True,
+            show_progress_bar=False
+        )
+        
+        # Generate embeddings for target objects
+        target_embeddings = self.sentence_model.encode(
+            mission_objective.target_objects,
+            normalize_embeddings=True,
+            show_progress_bar=False
+        )
+        
+        # Calculate similarities
+        similarities = np.dot(detected_embeddings, target_embeddings.T)
+        max_similarity = np.max(similarities)
+        
+        return float(max_similarity)
+    
+    def extract_frames_from_video(self, video_path: str, output_dir: str = None, 
+                                 frame_interval: int = 30) -> Tuple[List[str], int]:
+        """
+        Extract frames from video for analysis
+        
+        Args:
+            video_path: Path to video file
+            output_dir: Directory to save frames (creates temp dir if None)
+            frame_interval: Extract every nth frame
+            
+        Returns:
+            Tuple of (list of frame paths, total frames in video)
+        """
+        if output_dir is None:
+            output_dir = f"temp_frames_{Path(video_path).stem}"
+        
+        os.makedirs(output_dir, exist_ok=True)
+        
+        cap = cv2.VideoCapture(video_path)
+        if not cap.isOpened():
+            raise ValueError(f"Could not open video: {video_path}")
+        
+        total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        frame_count = 0
+        extracted_frames = []
+        
+        try:
+            while True:
+                ret, frame = cap.read()
+                if not ret:
+                    break
+                
+                if frame_count % frame_interval == 0:
+                    filename = f"frame_{frame_count:06d}.jpg"
+                    output_path = os.path.join(output_dir, filename)
+                    
+                    # Save frame
+                    cv2.imwrite(output_path, frame, [cv2.IMWRITE_JPEG_QUALITY, 85])
+                    extracted_frames.append((output_path, frame_count))
+                
+                frame_count += 1
+        
+        finally:
+            cap.release()
+        
+        logger.info(f"Extracted {len(extracted_frames)} frames from video")
+        return extracted_frames, total_frames
+    
+    def analyze_video(self, video_path: str, mission_objective: MissionObjective, 
+                     flight_plan: FlightPlan) -> List[SceneObservation]:
+        """
+        Analyze video using YOLO and sentence transformers
+        
+        Args:
+            video_path: Path to video file
+            mission_objective: Mission objective with target objects
+            flight_plan: Flight plan for GPS estimation
+            
+        Returns:
+            List of scene observations with detected objects and descriptions
+        """
+        self.flight_plan = flight_plan
+        observations = []
+        
+        try:
+            # Option 1: Direct frame-by-frame analysis
+            use_extracted_frames = True  # Set to False for direct video processing
+            
+            if use_extracted_frames:
+                # Extract frames first (more efficient for multiple analyses)
+                logger.info("Extracting frames from video...")
+                extracted_frames, total_frames = self.extract_frames_from_video(
+                    video_path, frame_interval=30  # Every 1 second at 30fps
+                )
+                
+                # Get video FPS for timestamp calculation
+                cap = cv2.VideoCapture(video_path)
+                fps = cap.get(cv2.CAP_PROP_FPS)
+                cap.release()
+                
+                logger.info(f"Analyzing {len(extracted_frames)} extracted frames...")
+                
+                for frame_path, frame_number in extracted_frames:
+                    # Load and analyze frame
+                    frame = cv2.imread(frame_path)
+                    if frame is None:
+                        continue
+                    
+                    # Detect objects
+                    detected_objects = self.detect_objects_in_frame(frame)
+                    
+                    if detected_objects:
+                        # Estimate GPS coordinates
+                        gps_coords = self.estimate_gps_from_flight_progress(
+                            frame_number, total_frames, flight_plan
+                        )
+                        
+                        # Generate scene description
+                        position_desc = self._get_position_description(frame_number, total_frames)
+                        scene_description = self.generate_scene_description(
+                            detected_objects, position_desc
+                        )
+                        
+                        # Calculate relevance
+                        relevance_score = self.calculate_relevance_score(
+                            detected_objects, mission_objective
+                        )
+                        
+                        # Extract just the labels
+                        object_labels = list(set(obj['label'] for obj in detected_objects))
+                        
+                        # Create observation
+                        observation = SceneObservation(
+                            frame_id=frame_number,
+                            timestamp=frame_number / fps,
+                            gps_coords=gps_coords,
+                            detected_objects=object_labels,
+                            scene_description=scene_description,
+                            relevance_score=relevance_score
+                        )
+                        
+                        observations.append(observation)
+                
+                # Clean up extracted frames if they were temporary
+                # if output_dir.startswith("temp_frames_"):
+                #     import shutil
+                #     shutil.rmtree(output_dir)
+                #     logger.info("Cleaned up temporary frames")
+                logger.info(f"Keeping extracted frames in: {output_dir}")
+            
+            else:
+                # Option 2: Direct video processing (original method)
+                cap = cv2.VideoCapture(video_path)
+                if not cap.isOpened():
+                    logger.error(f"Failed to open video: {video_path}")
+                    return observations
+                
+                total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+                fps = cap.get(cv2.CAP_PROP_FPS)
+                
+                logger.info(f"Analyzing video: {total_frames} frames at {fps} fps")
+                
+                sample_interval = 30
+                frame_number = 0
+                
+                while True:
+                    ret, frame = cap.read()
+                    if not ret:
+                        break
+                    
+                    if frame_number % sample_interval == 0:
+                        detected_objects = self.detect_objects_in_frame(frame)
+                        
+                        if detected_objects:
+                            gps_coords = self.estimate_gps_from_flight_progress(
+                                frame_number, total_frames, flight_plan
+                            )
+                            
+                            position_desc = self._get_position_description(frame_number, total_frames)
+                            scene_description = self.generate_scene_description(
+                                detected_objects, position_desc
+                            )
+                            
+                            relevance_score = self.calculate_relevance_score(
+                                detected_objects, mission_objective
+                            )
+                            
+                            object_labels = list(set(obj['label'] for obj in detected_objects))
+                            
+                            observation = SceneObservation(
+                                frame_id=frame_number,
+                                timestamp=frame_number / fps,
+                                gps_coords=gps_coords,
+                                detected_objects=object_labels,
+                                scene_description=scene_description,
+                                relevance_score=relevance_score
+                            )
+                            
+                            observations.append(observation)
+                    
+                    frame_number += 1
+                
+                cap.release()
+            
+            logger.info(f"✅ Video analysis complete: {len(observations)} observations")
+            
+        except Exception as e:
+            logger.error(f"Error analyzing video: {e}")
+        
+        return observations
+    
+    def _get_position_description(self, frame_number: int, total_frames: int) -> str:
+        """Generate position description based on progress through video"""
+        progress = frame_number / total_frames
+        
+        if progress < 0.33:
+            return "in the early part of the flight path"
+        elif progress < 0.66:
+            return "in the middle section of the flight path"
+        else:
+            return "in the later part of the flight path"
+    
+    def extract_frame_embeddings(self, video_path: str) -> np.ndarray:
+        """
+        Extract embeddings for each sampled frame for clustering
+        
+        Returns NxD embedding matrix where N is number of sampled frames
+        """
+        embeddings_list = []
+        
+        try:
+            cap = cv2.VideoCapture(video_path)
+            if not cap.isOpened():
+                logger.error(f"Failed to open video for embedding extraction: {video_path}")
+                return np.array([])
+            
+            total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+            sample_interval = 60  # Sample every 2 seconds at 30fps
+            frame_number = 0
+            
+            while True:
+                ret, frame = cap.read()
+                if not ret:
+                    break
+                
+                if frame_number % sample_interval == 0:
+                    # Detect objects
+                    detected_objects = self.detect_objects_in_frame(frame)
+                    
+                    if detected_objects:
+                        # Create scene description for embedding
+                        scene_text = self.generate_scene_description(detected_objects)
+                        
+                        # Generate embedding
+                        embedding = self.sentence_model.encode(
+                            [scene_text],
+                            normalize_embeddings=True,
+                            show_progress_bar=False
+                        )
+                        embeddings_list.append(embedding[0])
+                
+                frame_number += 1
+            
+            cap.release()
+            
+            if embeddings_list:
+                embeddings_matrix = np.vstack(embeddings_list)
+                logger.info(f"Extracted embeddings for {len(embeddings_list)} frames")
+                return embeddings_matrix
+            else:
+                return np.array([])
+                
+        except Exception as e:
+            logger.error(f"Error extracting embeddings: {e}")
+            return np.array([])
+
+# =============================================================================
+# FLIGHT PLAN OPTIMIZER
+# =============================================================================
+
+class FlightPlanOptimizer:
+    """Optimize flight plans based on observations and objectives"""
+    
+    def __init__(self):
+        self.scene_clusterer = SceneClusterer()
+    
+    def save_flight_plan_as_kml(self, flight_plan: FlightPlan, output_path: str):
+        """
+        Save flight plan as KML file
+        
+        Args:
+            flight_plan: FlightPlan object to save
+            output_path: Output file path for KML
+        """
+        kml_content = f'''<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>{flight_plan.name}</name>
+    <description>{flight_plan.description}</description>
+    <Style id="lineStyle">
+      <LineStyle>
+        <color>ff0000ff</color>
+        <width>4</width>
+      </LineStyle>
+    </Style>
+    <Style id="waypointStyle">
+      <IconStyle>
+        <color>ff00ff00</color>
+        <scale>1.0</scale>
+        <Icon>
+          <href>http://maps.google.com/mapfiles/kml/paddle/grn-circle.png</href>
+        </Icon>
+      </IconStyle>
+    </Style>
+    <Folder>
+      <name>Waypoints</name>
+'''
+        
+        # Add waypoints as placemarks
+        for i, point in enumerate(flight_plan.points):
+            altitude = point.alt if point.alt else 100
+            kml_content += f'''      <Placemark>
+        <name>{point.name if point.name else f"WP{i+1}"}</name>
+        <styleUrl>#waypointStyle</styleUrl>
+        <Point>
+          <coordinates>{point.lon},{point.lat},{altitude}</coordinates>
+          <altitudeMode>relativeToGround</altitudeMode>
+        </Point>
+      </Placemark>
+'''
+        
+        kml_content += '''    </Folder>
+    <Placemark>
+      <name>Flight Path</name>
+      <styleUrl>#lineStyle</styleUrl>
+      <LineString>
+        <extrude>1</extrude>
+        <tessellate>1</tessellate>
+        <altitudeMode>relativeToGround</altitudeMode>
+        <coordinates>
+'''
+        
+        # Add path coordinates
+        for point in flight_plan.points:
+            altitude = point.alt if point.alt else 100
+            kml_content += f'          {point.lon},{point.lat},{altitude}\n'
+        
+        kml_content += '''        </coordinates>
+      </LineString>
+    </Placemark>
+  </Document>
+</kml>'''
+        
+        # Save to file
+        with open(output_path, 'w') as f:
+            f.write(kml_content)
+        
+        logger.info(f"✅ Saved flight plan to: {output_path}")
+    
+    def optimize_flight_plan(self, 
+                           original_plan: FlightPlan,
+                           observations: List[SceneObservation],
+                           mission_objective: MissionObjective) -> Tuple[FlightPlan, List[OptimizationSuggestion]]:
+        """
+        Optimize flight plan based on observations and mission objective
+        
+        Returns:
+            optimized_plan: New optimized flight plan
+            suggestions: List of optimization suggestions
+        """
+        suggestions = []
+        optimized_points = original_plan.points.copy()
+        
+        # Analyze observations for mission-relevant areas
+        high_value_areas = []
+        low_value_areas = []
+        obstacles = []
+        
+        for obs in observations:
+            # Check if observation is relevant to mission
+            if any(target in obs.detected_objects for target in mission_objective.target_objects):
+                high_value_areas.append(obs)
+            elif obs.relevance_score < 0.3:
+                low_value_areas.append(obs)
+            
+            # Check for obstacles
+            if "wall" in obs.scene_description.lower() or "blocked" in obs.scene_description.lower():
+                obstacles.append(obs)
+        
+        # Generate optimization suggestions
+        if high_value_areas:
+            # Suggest focusing on high-value areas
+            for area in high_value_areas:
+                suggestions.append(OptimizationSuggestion(
+                    suggestion_type="route",
+                    location=(area.gps_coords[0], area.gps_coords[1]),
+                    description=f"Add more waypoints around GPS {area.gps_coords[0]:.4f}, {area.gps_coords[1]:.4f}",
+                    reason=f"High concentration of {mission_objective.target_objects} detected"
+                ))
+        
+        if obstacles:
+            # Suggest avoiding obstacles
+            for obstacle in obstacles:
+                suggestions.append(OptimizationSuggestion(
+                    suggestion_type="route",
+                    location=(obstacle.gps_coords[0], obstacle.gps_coords[1]),
+                    description=f"Avoid area around GPS {obstacle.gps_coords[0]:.4f}, {obstacle.gps_coords[1]:.4f}",
+                    reason=obstacle.scene_description
+                ))
+        
+        # Optimize capture rate based on scene diversity
+        self._suggest_capture_rate_optimization(observations, suggestions)
+        
+        # Create optimized flight plan
+        optimized_plan = self._create_optimized_plan(
+            original_plan, high_value_areas, obstacles
+        )
+        
+        return optimized_plan, suggestions
+    
+    def _suggest_capture_rate_optimization(self, 
+                                         observations: List[SceneObservation],
+                                         suggestions: List[OptimizationSuggestion]):
+        """Suggest capture rate changes based on scene redundancy"""
+        # Group observations by general area
+        area_groups = {}
+        for obs in observations:
+            area_key = (round(obs.gps_coords[0], 3), round(obs.gps_coords[1], 3))
+            if area_key not in area_groups:
+                area_groups[area_key] = []
+            area_groups[area_key].append(obs)
+        
+        # Check for redundant areas
+        for area, obs_list in area_groups.items():
+            if len(obs_list) > 10:  # Many observations in same area
+                # Check if scenes are similar
+                unique_objects = set()
+                for obs in obs_list:
+                    unique_objects.update(obs.detected_objects)
+                
+                if len(unique_objects) < 3:  # Low diversity
+                    suggestions.append(OptimizationSuggestion(
+                        suggestion_type="capture_rate",
+                        location=area,
+                        description=f"Reduce capture rate to 5 fps around GPS {area[0]:.4f}, {area[1]:.4f}",
+                        reason="Low scene diversity detected - mostly redundant frames"
+                    ))
+    
+    def _create_optimized_plan(self,
+                             original_plan: FlightPlan,
+                             high_value_areas: List[SceneObservation],
+                             obstacles: List[SceneObservation]) -> FlightPlan:
+        """Create optimized flight plan"""
+        optimized_points = []
+        
+        # Start with original points
+        for point in original_plan.points:
+            # Check if point is near an obstacle
+            near_obstacle = False
+            for obstacle in obstacles:
+                distance = self._calculate_distance(
+                    point.lat, point.lon,
+                    obstacle.gps_coords[0], obstacle.gps_coords[1]
+                )
+                if distance < 0.001:  # ~100 meters
+                    near_obstacle = True
+                    break
+            
+            if not near_obstacle:
+                optimized_points.append(point)
+        
+        # Add extra waypoints near high-value areas
+        for area in high_value_areas[:3]:  # Limit to top 3 areas
+            # Add circular pattern around high-value area
+            center_lat, center_lon = area.gps_coords[0], area.gps_coords[1]
+            for angle in [0, 90, 180, 270]:
+                offset = 0.0005  # ~50 meters
+                lat_offset = offset * np.cos(np.radians(angle))
+                lon_offset = offset * np.sin(np.radians(angle))
+                
+                new_point = FlightPoint(
+                    lat=center_lat + lat_offset,
+                    lon=center_lon + lon_offset,
+                    alt=100,
+                    name=f"search_pattern_{angle}"
+                )
+                optimized_points.append(new_point)
+        
+        return FlightPlan(
+            points=optimized_points,
+            name=f"{original_plan.name}_optimized",
+            description=f"Optimized for: {high_value_areas[0].detected_objects if high_value_areas else 'general'}"
+        )
+    
+    def _calculate_distance(self, lat1: float, lon1: float, 
+                          lat2: float, lon2: float) -> float:
+        """Simple distance calculation (in degrees)"""
+        return np.sqrt((lat2 - lat1)**2 + (lon2 - lon1)**2)
+
+# =============================================================================
+# MISSION COORDINATOR
+# =============================================================================
+
+class SimpleMissionCoordinator:
+    """Coordinate the mission planning process"""
+    
+    def __init__(self):
+        self.parser = SimpleMissionParser()
+        self.video_analyzer = VideoAnalyzer()
+        self.optimizer = FlightPlanOptimizer()
+        self.logger = logging.getLogger(__name__)
+    
+    def plan_mission(self, 
+                    flight_plan_file: str,
+                    user_objective: str,
+                    video_file: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Main mission planning function
+        
+        Returns comprehensive mission plan with observations and suggestions
+        """
+        self.logger.info(f"🚁 Starting mission planning")
+        self.logger.info(f"📋 Objective: {user_objective}")
+        
+        # Parse objective
+        mission_objective = self.parser.parse_objective(user_objective)
+        self.logger.info(f"🎯 Mission type: {mission_objective.mission_type.value}")
+        self.logger.info(f"🔍 Target objects: {mission_objective.target_objects}")
+        
+        # Load flight plan
+        original_plan = FlightPlanParser.parse_file(flight_plan_file)
+        self.logger.info(f"📍 Loaded flight plan with {len(original_plan.points)} waypoints")
+        
+        # Analyze video if provided
+        observations = []
+        if video_file and Path(video_file).exists():
+            self.logger.info(f"🎥 Analyzing video footage...")
+            observations = self.video_analyzer.analyze_video(video_file, mission_objective, original_plan)
+            
+            # Extract embeddings for clustering
+            embeddings = self.video_analyzer.extract_frame_embeddings(video_file)
+            labels, _ = self.optimizer.scene_clusterer.cluster_embeddings(embeddings)
+            redundant_scenes = self.optimizer.scene_clusterer.find_redundant_scenes(labels)
+            
+            self.logger.info(f"📊 Found {len(observations)} scene observations")
+            self.logger.info(f"🔄 Identified {len(redundant_scenes)} redundant scene types")
+        
+        # Optimize flight plan
+        optimized_plan, suggestions = self.optimizer.optimize_flight_plan(
+            original_plan, observations, mission_objective
+        )
+        
+        # Generate report
+        report = self._generate_report(
+            mission_objective, original_plan, optimized_plan,
+            observations, suggestions
+        )
+        
+        # Save optimized flight plan as KML
+        optimized_kml_path = f"optimized_{Path(flight_plan_file).stem}.kml"
+        self.optimizer.save_flight_plan_as_kml(optimized_plan, optimized_kml_path)
+        report['optimized_flight_plan_file'] = optimized_kml_path
+        
+        self.logger.info("✅ Mission planning complete!")
+        
+        return report
+    
+    def _generate_report(self,
+                        mission_objective: MissionObjective,
+                        original_plan: FlightPlan,
+                        optimized_plan: FlightPlan,
+                        observations: List[SceneObservation],
+                        suggestions: List[OptimizationSuggestion]) -> Dict[str, Any]:
+        """Generate comprehensive mission report"""
+        
+        # Format observations for output
+        formatted_observations = []
+        for obs in observations:
+            formatted_observations.append({
+                "frame_id": obs.frame_id,
+                "timestamp": obs.timestamp,
+                "gps_location": {
+                    "latitude": obs.gps_coords[0],
+                    "longitude": obs.gps_coords[1],
+                    "altitude": obs.gps_coords[2]
+                },
+                "detected_objects": obs.detected_objects,
+                "description": obs.scene_description,
+                "relevance_to_mission": obs.relevance_score
+            })
+        
+        # Format suggestions
+        formatted_suggestions = []
+        for sugg in suggestions:
+            formatted_suggestions.append({
+                "type": sugg.suggestion_type,
+                "location": {
+                    "latitude": sugg.location[0] if sugg.location else None,
+                    "longitude": sugg.location[1] if sugg.location else None
+                },
+                "suggestion": sugg.description,
+                "reasoning": sugg.reason
+            })
+        
+        # Key findings summary
+        key_findings = []
+        
+        # Find target objects
+        target_found_locations = []
+        for obs in observations:
+            if any(target in obs.detected_objects for target in mission_objective.target_objects):
+                target_found_locations.append(obs)
+                key_findings.append(
+                    f"✅ {', '.join([t for t in mission_objective.target_objects if t in obs.detected_objects])} "
+                    f"found at GPS {obs.gps_coords[0]:.6f}, {obs.gps_coords[1]:.6f}"
+                )
+        
+        # Environmental observations
+        env_features = {"water": [], "ice": [], "obstacles": []}
+        for obs in observations:
+            if "water" in obs.scene_description.lower():
+                env_features["water"].append(obs)
+            if "ice" in obs.scene_description.lower() or "ice" in obs.detected_objects:
+                env_features["ice"].append(obs)
+            if "wall" in obs.scene_description.lower() or "blocked" in obs.scene_description.lower():
+                env_features["obstacles"].append(obs)
+        
+        if env_features["water"]:
+            key_findings.append(f"💧 Water detected in {len(env_features['water'])} locations")
+        if env_features["ice"]:
+            key_findings.append(f"🧊 Ice formations in {len(env_features['ice'])} areas")
+        if env_features["obstacles"]:
+            key_findings.append(f"⚠️ {len(env_features['obstacles'])} obstacles detected")
+        
+        return {
+            "mission_objective": {
+                "user_goal": mission_objective.user_goal,
+                "mission_type": mission_objective.mission_type.value,
+                "target_objects": mission_objective.target_objects
+            },
+            "flight_plans": {
+                "original_waypoints": len(original_plan.points),
+                "optimized_waypoints": len(optimized_plan.points),
+                "optimization_applied": len(optimized_plan.points) != len(original_plan.points)
+            },
+            "key_findings": key_findings,
+            "scene_observations": formatted_observations,
+            "optimization_suggestions": formatted_suggestions,
+            "summary": {
+                "total_observations": len(observations),
+                "high_relevance_scenes": len([o for o in observations if o.relevance_score > 0.7]),
+                "target_objects_found": len(target_found_locations) > 0,
+                "suggested_optimizations": len(suggestions)
+            }
+        }
+
+# =============================================================================
+# MAIN INTERFACE
+# =============================================================================
+
+def main():
+    """Main execution function"""
+    print("🚁 Simplified Intelligent Drone Mission System")
+    print("=" * 50)
+    
+    # Get user inputs
+    flight_plan_file = input("📁 Flight plan file (KML/GPX/CSV): ").strip()
+    if not Path(flight_plan_file).exists():
+        print(f"❌ File not found: {flight_plan_file}")
+        return
+    
+    print("\n💡 Example objectives:")
+    print('  - "Find penguins in this area"')
+    print('  - "Survey the coastline for ice formations"')
+    print('  - "Should I capture at 10fps everywhere?"')
+    
+    user_objective = input("\n🎯 Your mission objective: ").strip()
+    
+    video_file = input("🎥 Video file (optional, press Enter to skip): ").strip()
+    
+    # Run mission planning
+    coordinator = SimpleMissionCoordinator()
+    
+    try:
+        report = coordinator.plan_mission(
+            flight_plan_file=flight_plan_file,
+            user_objective=user_objective,
+            video_file=video_file if video_file else None
+        )
+        
+        # Display results
+        print("\n" + "="*50)
+        print("📋 MISSION PLANNING REPORT")
+        print("="*50)
+        
+        print(f"\n🎯 Mission: {report['mission_objective']['user_goal']}")
+        print(f"Type: {report['mission_objective']['mission_type']}")
+        print(f"Targets: {', '.join(report['mission_objective']['target_objects'])}")
+        
+        print("\n🔑 KEY FINDINGS:")
+        for finding in report['key_findings']:
+            print(f"  {finding}")
+        
+        print("\n📊 SUMMARY:")
+        summary = report['summary']
+        print(f"  Total observations: {summary['total_observations']}")
+        print(f"  High relevance scenes: {summary['high_relevance_scenes']}")
+        print(f"  Target found: {'Yes' if summary['target_objects_found'] else 'No'}")
+        print(f"  Optimization suggestions: {summary['suggested_optimizations']}")
+        
+        print("\n💡 OPTIMIZATION SUGGESTIONS:")
+        for i, sugg in enumerate(report['optimization_suggestions'][:5], 1):
+            print(f"\n  {i}. {sugg['suggestion']}")
+            print(f"     Reason: {sugg['reasoning']}")
+            if sugg['location']['latitude']:
+                print(f"     Location: {sugg['location']['latitude']:.6f}, {sugg['location']['longitude']:.6f}")
+        
+        # Save detailed report
+        output_file = f"mission_report_{Path(flight_plan_file).stem}.json"
+        with open(output_file, 'w') as f:
+            json.dump(report, f, indent=2)
+        print(f"\n📄 Detailed report saved to: {output_file}")
+        
+        # Show optimized flight plan file
+        if 'optimized_flight_plan_file' in report:
+            print(f"✅ Optimized flight plan saved to: {report['optimized_flight_plan_file']}")
+            print(f"   You can load this KML file in any mapping software!")
+        
+    except Exception as e:
+        print(f"\n❌ Error: {e}")
+        logger.error(f"Mission planning failed: {e}", exc_info=True)
+
+if __name__ == "__main__":
+    main()
