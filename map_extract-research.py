@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 r"""
-QGIS kml manipulation and gps fetching module
+Drone Flight Context Map Generator - Enhanced with GPS Coordinate Display
+Generates contextual maps showing drone flight areas with surrounding geography and GPS coordinates.
+Run with: C:\OSGeo4W\bin\python-qgis.bat drone_map_generator.py
 """
 
 import os
