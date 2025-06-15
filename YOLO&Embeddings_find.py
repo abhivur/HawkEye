@@ -1,8 +1,11 @@
 import os
+import json
 import numpy as np
 from PIL import Image
 import requests
 from io import BytesIO
+from datetime import datetime
+from pathlib import Path
 
 import torch
 from ultralytics import YOLO
@@ -13,23 +16,16 @@ from sentence_transformers import SentenceTransformer
 # =============================================================================
 
 # Path to your images folder (CHANGE THIS!)
-IMAGES_FOLDER_PATH = "C:/Users/lukev/Projects/HawkEye/IMG_6231_frames"  # Folder containing all images
+IMAGES_FOLDER_PATH = "C:/Users/lukev/Projects/HawkEye/drone_footage_frames"  # Folder containing all images
 # Examples: 
 # IMAGES_FOLDER_PATH = "C:/Users/YourName/Desktop/photos/"     # Windows
 # IMAGES_FOLDER_PATH = "/home/user/images/"                   # Linux
 # IMAGES_FOLDER_PATH = "/Users/username/Pictures/dataset/"    # Mac
 
-# Your search query (CHANGE THIS!)
-TEST_QUERY = "coffee mug"  # What you're looking for
-# Examples:
-# TEST_QUERY = "red circular objects"
-# TEST_QUERY = "animals"
-# TEST_QUERY = "vehicles"
-# TEST_QUERY = "people"
-# TEST_QUERY = "sports equipment"
+# Output JSON file for the mission planning system
+OUTPUT_JSON_PATH = "frame_detection_results.json"
 
-# Similarity threshold to stop searching (80% = 0.80)
-SIMILARITY_THRESHOLD = 0.80  # Stop when match is this good or better
+
 
 # Supported image formats
 SUPPORTED_FORMATS = ('.jpg', '.jpeg', '.png', '.bmp', '.tiff', '.webp')
@@ -39,7 +35,7 @@ SUPPORTED_FORMATS = ('.jpg', '.jpeg', '.png', '.bmp', '.tiff', '.webp')
 # =============================================================================
 
 # Initialize YOLOv8 model with Open Images V7 (600 classes)
-YOLO_MODEL_PATH = 'yolov8n-oiv7.pt'  # 600 classes model
+YOLO_MODEL_PATH = 'yolov8s.pt' #'yolov8n-oiv7.pt'  # 600 classes model
 yolo_model = None
 
 # Initialize Sentence Transformer model - UPGRADED!
@@ -50,9 +46,9 @@ def initialize_yolo():
     """Initialize YOLOv8 model using Ultralytics"""
     global yolo_model
     try:
-        print(f"   Loading YOLOv8-OIV7 model: {YOLO_MODEL_PATH}")
+        print(f"   Loading YOLOv8 model: {YOLO_MODEL_PATH}")
         yolo_model = YOLO(YOLO_MODEL_PATH)  # Will download automatically if not present
-        print("   ✅ YOLOv8 COCO model loaded successfully (80 classes - like the website)")
+        print("   ✅ YOLOv8 model loaded successfully")
     except Exception as e:
         print(f"   ❌ Error loading YOLOv8 model: {e}")
         raise
@@ -69,14 +65,13 @@ def initialize_sentence_transformer():
         print(f"   ❌ Error loading Sentence Transformer model: {e}")
         raise
 
-def search_folder_for_object():
-    """Search through all images in folder until finding object with 90%+ similarity"""
+def process_all_frames_and_save_json():
+    """Process all images in folder and save results to JSON for mission planning system"""
     
-    print("🔍 FOLDER SEARCH MODE - Find Object and Stop")
+    print("🔍 FULL FOLDER PROCESSING - Process All Frames")
     print("="*70)
     print(f"📂 Folder: {IMAGES_FOLDER_PATH}")
-    print(f"🎯 Query: '{TEST_QUERY}'")
-    print(f"🎚️  Similarity Threshold: {SIMILARITY_THRESHOLD*100:.0f}%")
+    print(f"💾 Output JSON: {OUTPUT_JSON_PATH}")
     print("="*70)
     
     # Check if folder exists
@@ -100,79 +95,98 @@ def search_folder_for_object():
     initialize_yolo()
     initialize_sentence_transformer()
     
-    # Search through images
-    print(f"\n🔍 Starting search for '{TEST_QUERY}'...")
+    # Process all images
+    print(f"\n🔍 Processing all {len(image_files)} frames...")
     print("-" * 70)
     
+    frame_data_list = []
     total_objects_processed = 0
     
     for img_index, image_file in enumerate(image_files, 1):
-        print(f"\n📸 Processing image {img_index}/{len(image_files)}: {os.path.basename(image_file)}")
+        print(f"\n📸 Processing frame {img_index}/{len(image_files)}: {os.path.basename(image_file)}")
+        
+        # Generate GPS coordinates - NULL since we don't know actual location
+        gps_coords = [None, None, None]  # [lat, lon, alt] - will be null in JSON
+        
+        # Generate timestamp (you can modify this to read from EXIF or file timestamps)
+        timestamp = float(img_index)
         
         # Detect objects in current image
         objects = detect_individual_objects(image_file)
         
         if not objects:
             print(f"   ℹ️  No objects detected")
+            # Still add frame data even with no objects
+            frame_data = {
+                "frame_id": img_index,
+                "timestamp": timestamp,
+                "frame_path": os.path.abspath(image_file),
+                "gps_coords": gps_coords,
+                "detected_objects": []
+            }
+            frame_data_list.append(frame_data)
             continue
         
         print(f"   ✅ Detected {len(objects)} objects")
         total_objects_processed += len(objects)
         
-        # Show ALL detected objects (for debugging)
-        print(f"   📋 All objects found:")
+        # Show detected objects
+        detected_objects_json = []
         for i, obj in enumerate(objects, 1):
             print(f"      {i}. {obj['enhanced_caption']} (conf: {obj['confidence']:.3f})")
+            
+            # Convert to JSON format expected by mission planning system
+            obj_json = {
+                "label": obj['label'],
+                "confidence": obj['confidence'],
+                "bbox": obj['bounding_box'],
+                "area": obj['area']
+            }
+            detected_objects_json.append(obj_json)
         
-        # Generate embeddings for all objects in this image
-        captions = [obj['enhanced_caption'] for obj in objects]
-        embeddings = generate_embeddings_quiet(captions)
+        # Create frame data entry
+        frame_data = {
+            "frame_id": img_index,
+            "timestamp": timestamp,
+            "frame_path": os.path.abspath(image_file),
+            "gps_coords": gps_coords,
+            "detected_objects": detected_objects_json
+        }
         
-        if len(embeddings) == 0:
-            print(f"   ❌ Failed to generate embeddings")
-            continue
-        
-        # Check each object for similarity match
-        query_embedding = sentence_model.encode([TEST_QUERY], normalize_embeddings=True)
-        similarities = np.dot(embeddings, query_embedding.T).flatten()
-        
-        # Find best match in this image
-        best_match_idx = np.argmax(similarities)
-        best_similarity = similarities[best_match_idx]
-        best_object = objects[best_match_idx]
-        
-        print(f"   🎯 Best match: {best_object['enhanced_caption']} (similarity: {best_similarity:.3f})")
-        
-        # Check if we found our target!
-        if best_similarity >= SIMILARITY_THRESHOLD:
-            print("\n" + "🎉" * 20)
-            print("🎯 TARGET FOUND! 🎯")
-            print("🎉" * 20)
-            print(f"📁 Image: {os.path.basename(image_file)}")
-            print(f"📍 Full path: {image_file}")
-            print(f"🎯 Object: {best_object['enhanced_caption']}")
-            print(f"📊 Similarity: {best_similarity:.3f} ({best_similarity*100:.1f}%)")
-            print(f"🎗️  Confidence: {best_object['confidence']:.3f}")
-            print(f"📏 Bounding box: {best_object['bounding_box']}")
-            print(f"📈 Search stats: Processed {img_index} images, {total_objects_processed} total objects")
-            print("\n✅ SEARCH COMPLETED - Target found!")
-            return  # Stop searching!
-        
-        # Show progress for objects that didn't meet threshold
-        for i, obj in enumerate(objects):
-            similarity = similarities[i]
-            if similarity > 0.3:  # Only show decent matches
-                status = "🟡" if similarity > 0.6 else "🟠" if similarity > 0.4 else "🔴"
-                print(f"      {status} {obj['enhanced_caption']}: {similarity:.3f}")
+        frame_data_list.append(frame_data)
     
-    # If we get here, we didn't find a match above threshold
-    print("\n" + "❌" * 20)
-    print("🔍 SEARCH COMPLETED - No match found")
-    print("❌" * 20)
-    print(f"📊 Processed {len(image_files)} images")
-    print(f"🔢 Analyzed {total_objects_processed} total objects")
-    print(f"🎚️  No object reached {SIMILARITY_THRESHOLD*100:.0f}% similarity threshold")
-    print(f"💡 Try lowering SIMILARITY_THRESHOLD or using a different query")
+    # Save results to JSON file
+    output_data = frame_data_list  # Direct list format as expected by mission planning system
+    
+    try:
+        with open(OUTPUT_JSON_PATH, 'w') as f:
+            json.dump(output_data, f, indent=2)
+        
+        print("\n" + "🎉" * 20)
+        print("✅ PROCESSING COMPLETED! ✅")
+        print("🎉" * 20)
+        print(f"📁 Processed {len(image_files)} frames")
+        print(f"🔢 Total objects detected: {total_objects_processed}")
+        print(f"💾 Results saved to: {os.path.abspath(OUTPUT_JSON_PATH)}")
+        print(f"📊 Frames with objects: {len([f for f in frame_data_list if f['detected_objects']])}")
+        print(f"📊 Frames without objects: {len([f for f in frame_data_list if not f['detected_objects']])}")
+        
+        # Show sample of what was saved
+        print(f"\n📄 First frame processed:")
+        if frame_data_list:
+            sample_frame = frame_data_list[0]
+            print(f"   Frame ID: {sample_frame['frame_id']}")
+            print(f"   GPS: {sample_frame['gps_coords']}")
+            print(f"   Objects detected: {len(sample_frame['detected_objects'])}")
+            if sample_frame['detected_objects']:
+                print(f"   Sample object: {sample_frame['detected_objects'][0]['label']} (conf: {sample_frame['detected_objects'][0]['confidence']:.3f})")
+        
+        print(f"\n💡 You can now use '{OUTPUT_JSON_PATH}' with the mission planning system!")
+        
+    except Exception as e:
+        print(f"\n❌ Error saving JSON file: {e}")
+
+
 
 def get_image_files(folder_path):
     """Get all image files from the specified folder and ALL subfolders (recursive)"""
@@ -204,30 +218,8 @@ def get_image_files(folder_path):
         print(f"❌ Error reading folder: {e}")
         return []
 
-def generate_embeddings_quiet(texts):
-    """Generate embeddings without progress bar (for folder processing)"""
-    try:
-        if sentence_model is None:
-            raise Exception("Sentence Transformer model not initialized")
-        
-        if not texts:
-            return np.array([])
-        
-        # Generate embeddings quietly
-        embeddings = sentence_model.encode(
-            texts, 
-            normalize_embeddings=True,
-            show_progress_bar=False
-        )
-        
-        return embeddings
-        
-    except Exception as e:
-        print(f"   ❌ Error generating embeddings: {e}")
-        return np.array([])
-
 def detect_individual_objects(image_path):
-    """Detect individual objects in image using YOLOv8-OIV7 and return list of object data"""
+    """Detect individual objects in image using YOLOv8 and return list of object data"""
     try:
         if yolo_model is None:
             raise Exception("YOLOv8 model not initialized")
@@ -298,17 +290,18 @@ def detect_individual_objects(image_path):
         print(f"Error in YOLOv8 object detection: {e}")
         return []
 
+
+
 def main():
-    """Main function - Search folder for object with 90%+ similarity"""
-    print("🎯 YOLO + Sentence Transformers - Folder Search Tool")
-    print("💡 Edit IMAGES_FOLDER_PATH and TEST_QUERY at the top of the file")
-    print("📦 Using YOLOv8 COCO (80 classes) + Sentence Transformers - TESTING")
-    print("🧪 Testing with same model type as successful website")
-    print("🛑 Stops when finding object with 90%+ similarity")
+    """Main function - Process all frames and save to JSON"""
+    print("🎯 YOLO + Object Detection - Full Frame Processing Tool")
+    print("💡 Edit IMAGES_FOLDER_PATH and OUTPUT_JSON_PATH at the top of the file")
+    print("📦 Using YOLOv8 + Sentence Transformers")
+    print("📄 Outputs JSON format compatible with mission planning system")
     print()
     
-    # Run folder search
-    search_folder_for_object()
+    # Run full processing
+    process_all_frames_and_save_json()
 
 if __name__ == "__main__":
     main()
