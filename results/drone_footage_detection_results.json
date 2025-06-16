@@ -1,0 +1,3235 @@
+[
+  {
+    "frame_id": 1,
+    "timestamp": 1.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_000000.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 2,
+    "timestamp": 2.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_000030.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 3,
+    "timestamp": 3.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_000060.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 4,
+    "timestamp": 4.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_000090.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 5,
+    "timestamp": 5.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_000120.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 6,
+    "timestamp": 6.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_000150.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 7,
+    "timestamp": 7.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_000180.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 8,
+    "timestamp": 8.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_000210.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 9,
+    "timestamp": 9.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_000240.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 10,
+    "timestamp": 10.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_000270.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 11,
+    "timestamp": 11.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_000300.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 12,
+    "timestamp": 12.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_000330.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 13,
+    "timestamp": 13.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_000360.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 14,
+    "timestamp": 14.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_000390.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": [
+      {
+        "label": "truck",
+        "confidence": 0.26465293765068054,
+        "bbox": {
+          "xmin": 287.5181579589844,
+          "ymin": 862.475830078125,
+          "xmax": 470.233642578125,
+          "ymax": 1013.64697265625
+        },
+        "area": 27621.30859375
+      }
+    ]
+  },
+  {
+    "frame_id": 15,
+    "timestamp": 15.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_000420.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 16,
+    "timestamp": 16.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_000450.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 17,
+    "timestamp": 17.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_000480.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 18,
+    "timestamp": 18.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_000510.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 19,
+    "timestamp": 19.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_000540.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 20,
+    "timestamp": 20.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_000570.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 21,
+    "timestamp": 21.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_000600.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 22,
+    "timestamp": 22.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_000630.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 23,
+    "timestamp": 23.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_000660.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 24,
+    "timestamp": 24.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_000690.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 25,
+    "timestamp": 25.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_000720.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 26,
+    "timestamp": 26.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_000750.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 27,
+    "timestamp": 27.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_000780.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 28,
+    "timestamp": 28.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_000810.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 29,
+    "timestamp": 29.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_000840.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 30,
+    "timestamp": 30.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_000870.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 31,
+    "timestamp": 31.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_000900.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 32,
+    "timestamp": 32.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_000930.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": [
+      {
+        "label": "car",
+        "confidence": 0.26146963238716125,
+        "bbox": {
+          "xmin": 453.7043151855469,
+          "ymin": 336.243896484375,
+          "xmax": 547.4978637695312,
+          "ymax": 399.8433837890625
+        },
+        "area": 5965.2216796875
+      },
+      {
+        "label": "truck",
+        "confidence": 0.2525939345359802,
+        "bbox": {
+          "xmin": 453.5199279785156,
+          "ymin": 334.4299621582031,
+          "xmax": 554.8870849609375,
+          "ymax": 404.4494934082031
+        },
+        "area": 7097.6806640625
+      }
+    ]
+  },
+  {
+    "frame_id": 33,
+    "timestamp": 33.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_000960.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": [
+      {
+        "label": "car",
+        "confidence": 0.38117632269859314,
+        "bbox": {
+          "xmin": 446.7488708496094,
+          "ymin": 344.4148864746094,
+          "xmax": 530.3948974609375,
+          "ymax": 396.6668701171875
+        },
+        "area": 4370.6708984375
+      }
+    ]
+  },
+  {
+    "frame_id": 34,
+    "timestamp": 34.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_000990.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 35,
+    "timestamp": 35.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_001020.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 36,
+    "timestamp": 36.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_001050.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 37,
+    "timestamp": 37.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_001080.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 38,
+    "timestamp": 38.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_001110.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 39,
+    "timestamp": 39.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_001140.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 40,
+    "timestamp": 40.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_001170.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 41,
+    "timestamp": 41.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_001200.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 42,
+    "timestamp": 42.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_001230.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 43,
+    "timestamp": 43.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_001260.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 44,
+    "timestamp": 44.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_001290.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": [
+      {
+        "label": "car",
+        "confidence": 0.7382515668869019,
+        "bbox": {
+          "xmin": 1781.171630859375,
+          "ymin": 454.9567565917969,
+          "xmax": 1919.3778076171875,
+          "ymax": 539.7850952148438
+        },
+        "area": 11723.80078125
+      },
+      {
+        "label": "car",
+        "confidence": 0.4276468753814697,
+        "bbox": {
+          "xmin": 1745.6502685546875,
+          "ymin": 407.1485595703125,
+          "xmax": 1892.6517333984375,
+          "ymax": 463.0902099609375
+        },
+        "area": 8223.5048828125
+      }
+    ]
+  },
+  {
+    "frame_id": 45,
+    "timestamp": 45.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_001320.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": [
+      {
+        "label": "car",
+        "confidence": 0.6591267585754395,
+        "bbox": {
+          "xmin": 1812.5086669921875,
+          "ymin": 456.8612365722656,
+          "xmax": 1919.4525146484375,
+          "ymax": 549.5301513671875
+        },
+        "area": 9910.3701171875
+      },
+      {
+        "label": "car",
+        "confidence": 0.5948886275291443,
+        "bbox": {
+          "xmin": 1778.38916015625,
+          "ymin": 408.8059387207031,
+          "xmax": 1909.691162109375,
+          "ymax": 473.0635986328125
+        },
+        "area": 8437.1591796875
+      }
+    ]
+  },
+  {
+    "frame_id": 46,
+    "timestamp": 46.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_001350.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": [
+      {
+        "label": "car",
+        "confidence": 0.6758103370666504,
+        "bbox": {
+          "xmin": 1678.32421875,
+          "ymin": 461.38873291015625,
+          "xmax": 1914.882568359375,
+          "ymax": 551.0950927734375
+        },
+        "area": 21220.7890625
+      },
+      {
+        "label": "car",
+        "confidence": 0.4004169702529907,
+        "bbox": {
+          "xmin": 1833.4886474609375,
+          "ymin": 426.6420593261719,
+          "xmax": 1919.1728515625,
+          "ymax": 476.9469909667969
+        },
+        "area": 4310.337890625
+      },
+      {
+        "label": "car",
+        "confidence": 0.25808006525039673,
+        "bbox": {
+          "xmin": 1663.4212646484375,
+          "ymin": 441.99261474609375,
+          "xmax": 1804.9903564453125,
+          "ymax": 508.7438049316406
+        },
+        "area": 9449.9052734375
+      }
+    ]
+  },
+  {
+    "frame_id": 47,
+    "timestamp": 47.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_001380.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": [
+      {
+        "label": "car",
+        "confidence": 0.7982496619224548,
+        "bbox": {
+          "xmin": 1197.8271484375,
+          "ymin": 452.0913391113281,
+          "xmax": 1407.5374755859375,
+          "ymax": 535.1834716796875
+        },
+        "area": 17425.27734375
+      },
+      {
+        "label": "car",
+        "confidence": 0.5845041275024414,
+        "bbox": {
+          "xmin": 1379.34423828125,
+          "ymin": 427.7435302734375,
+          "xmax": 1573.244384765625,
+          "ymax": 510.1607666015625
+        },
+        "area": 15980.7138671875
+      },
+      {
+        "label": "car",
+        "confidence": 0.5770720839500427,
+        "bbox": {
+          "xmin": 1127.8970947265625,
+          "ymin": 394.55548095703125,
+          "xmax": 1279.0740966796875,
+          "ymax": 460.45989990234375
+        },
+        "area": 9963.232421875
+      },
+      {
+        "label": "car",
+        "confidence": 0.5001363754272461,
+        "bbox": {
+          "xmin": 1321.6953125,
+          "ymin": 412.599609375,
+          "xmax": 1433.1904296875,
+          "ymax": 457.749755859375
+        },
+        "area": 5034.02099609375
+      },
+      {
+        "label": "car",
+        "confidence": 0.46344539523124695,
+        "bbox": {
+          "xmin": 1165.149169921875,
+          "ymin": 432.1090393066406,
+          "xmax": 1331.3572998046875,
+          "ymax": 504.97137451171875
+        },
+        "area": 12110.3125
+      }
+    ]
+  },
+  {
+    "frame_id": 48,
+    "timestamp": 48.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_001410.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": [
+      {
+        "label": "car",
+        "confidence": 0.7763943076133728,
+        "bbox": {
+          "xmin": 1203.8929443359375,
+          "ymin": 450.1166687011719,
+          "xmax": 1417.414794921875,
+          "ymax": 535.3450927734375
+        },
+        "area": 18198.130859375
+      },
+      {
+        "label": "car",
+        "confidence": 0.6276738047599792,
+        "bbox": {
+          "xmin": 1329.539794921875,
+          "ymin": 411.6717224121094,
+          "xmax": 1452.2801513671875,
+          "ymax": 460.5943908691406
+        },
+        "area": 6004.78564453125
+      },
+      {
+        "label": "car",
+        "confidence": 0.5104275941848755,
+        "bbox": {
+          "xmin": 1134.9107666015625,
+          "ymin": 396.00604248046875,
+          "xmax": 1284.703857421875,
+          "ymax": 458.0620422363281
+        },
+        "area": 9295.5595703125
+      },
+      {
+        "label": "car",
+        "confidence": 0.4447941780090332,
+        "bbox": {
+          "xmin": 1395.3636474609375,
+          "ymin": 434.17474365234375,
+          "xmax": 1570.389404296875,
+          "ymax": 487.65472412109375
+        },
+        "area": 9360.3740234375
+      },
+      {
+        "label": "car",
+        "confidence": 0.3249385952949524,
+        "bbox": {
+          "xmin": 1180.953369140625,
+          "ymin": 433.259765625,
+          "xmax": 1317.27392578125,
+          "ymax": 502.36212158203125
+        },
+        "area": 9420.0712890625
+      }
+    ]
+  },
+  {
+    "frame_id": 49,
+    "timestamp": 49.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_001440.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": [
+      {
+        "label": "car",
+        "confidence": 0.8367705345153809,
+        "bbox": {
+          "xmin": 1205.7459716796875,
+          "ymin": 458.9114074707031,
+          "xmax": 1430.66650390625,
+          "ymax": 546.177001953125
+        },
+        "area": 19627.82421875
+      },
+      {
+        "label": "car",
+        "confidence": 0.6929079294204712,
+        "bbox": {
+          "xmin": 1328.5997314453125,
+          "ymin": 414.4148254394531,
+          "xmax": 1457.5037841796875,
+          "ymax": 471.5660705566406
+        },
+        "area": 7367.02734375
+      },
+      {
+        "label": "car",
+        "confidence": 0.5139707326889038,
+        "bbox": {
+          "xmin": 1179.2978515625,
+          "ymin": 435.9434509277344,
+          "xmax": 1317.1458740234375,
+          "ymax": 514.623291015625
+        },
+        "area": 10845.8603515625
+      },
+      {
+        "label": "car",
+        "confidence": 0.46370381116867065,
+        "bbox": {
+          "xmin": 1400.9696044921875,
+          "ymin": 434.03759765625,
+          "xmax": 1611.2091064453125,
+          "ymax": 490.078125
+        },
+        "area": 11781.9326171875
+      },
+      {
+        "label": "car",
+        "confidence": 0.4058689475059509,
+        "bbox": {
+          "xmin": 1140.9056396484375,
+          "ymin": 398.89520263671875,
+          "xmax": 1297.726318359375,
+          "ymax": 467.5494079589844
+        },
+        "area": 10766.3994140625
+      },
+      {
+        "label": "car",
+        "confidence": 0.3320232927799225,
+        "bbox": {
+          "xmin": 1487.61328125,
+          "ymin": 468.5486145019531,
+          "xmax": 1647.5299072265625,
+          "ymax": 576.8598022460938
+        },
+        "area": 17320.759765625
+      }
+    ]
+  },
+  {
+    "frame_id": 50,
+    "timestamp": 50.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_001470.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": [
+      {
+        "label": "car",
+        "confidence": 0.7806762456893921,
+        "bbox": {
+          "xmin": 1199.544189453125,
+          "ymin": 465.60498046875,
+          "xmax": 1438.2646484375,
+          "ymax": 562.0512084960938
+        },
+        "area": 23023.6875
+      },
+      {
+        "label": "car",
+        "confidence": 0.646649956703186,
+        "bbox": {
+          "xmin": 1176.052001953125,
+          "ymin": 445.6715087890625,
+          "xmax": 1329.636962890625,
+          "ymax": 522.5494995117188
+        },
+        "area": 11807.302734375
+      },
+      {
+        "label": "car",
+        "confidence": 0.6319876313209534,
+        "bbox": {
+          "xmin": 1337.19580078125,
+          "ymin": 417.7212829589844,
+          "xmax": 1476.0394287109375,
+          "ymax": 472.4566345214844
+        },
+        "area": 7599.65478515625
+      },
+      {
+        "label": "car",
+        "confidence": 0.5460121035575867,
+        "bbox": {
+          "xmin": 1135.2320556640625,
+          "ymin": 401.6926574707031,
+          "xmax": 1316.2823486328125,
+          "ymax": 470.7843933105469
+        },
+        "area": 12509.0791015625
+      },
+      {
+        "label": "car",
+        "confidence": 0.4686970114707947,
+        "bbox": {
+          "xmin": 1510.541015625,
+          "ymin": 478.36114501953125,
+          "xmax": 1669.4293212890625,
+          "ymax": 548.6083374023438
+        },
+        "area": 11161.45703125
+      },
+      {
+        "label": "car",
+        "confidence": 0.3834269642829895,
+        "bbox": {
+          "xmin": 1441.9786376953125,
+          "ymin": 449.7596740722656,
+          "xmax": 1596.303955078125,
+          "ymax": 503.3235168457031
+        },
+        "area": 8266.2568359375
+      },
+      {
+        "label": "car",
+        "confidence": 0.2691412568092346,
+        "bbox": {
+          "xmin": 1586.8377685546875,
+          "ymin": 507.0216064453125,
+          "xmax": 1712.9073486328125,
+          "ymax": 600.3850708007812
+        },
+        "area": 11770.29296875
+      }
+    ]
+  },
+  {
+    "frame_id": 51,
+    "timestamp": 51.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_001500.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": [
+      {
+        "label": "car",
+        "confidence": 0.7902851104736328,
+        "bbox": {
+          "xmin": 1213.6234130859375,
+          "ymin": 446.3837585449219,
+          "xmax": 1452.322998046875,
+          "ymax": 546.0255126953125
+        },
+        "area": 23784.4453125
+      },
+      {
+        "label": "car",
+        "confidence": 0.5862151980400085,
+        "bbox": {
+          "xmin": 1322.649658203125,
+          "ymin": 392.4639892578125,
+          "xmax": 1485.913818359375,
+          "ymax": 453.4835205078125
+        },
+        "area": 9962.302734375
+      },
+      {
+        "label": "car",
+        "confidence": 0.5494495034217834,
+        "bbox": {
+          "xmin": 1177.839111328125,
+          "ymin": 425.6759338378906,
+          "xmax": 1341.658203125,
+          "ymax": 508.1903076171875
+        },
+        "area": 13517.4296875
+      },
+      {
+        "label": "car",
+        "confidence": 0.5372164249420166,
+        "bbox": {
+          "xmin": 1136.005126953125,
+          "ymin": 381.6741943359375,
+          "xmax": 1290.81005859375,
+          "ymax": 451.423095703125
+        },
+        "area": 10797.4736328125
+      },
+      {
+        "label": "car",
+        "confidence": 0.4112260341644287,
+        "bbox": {
+          "xmin": 1443.198486328125,
+          "ymin": 426.51177978515625,
+          "xmax": 1609.2572021484375,
+          "ymax": 485.62994384765625
+        },
+        "area": 9817.0859375
+      },
+      {
+        "label": "car",
+        "confidence": 0.40217021107673645,
+        "bbox": {
+          "xmin": 1519.2076416015625,
+          "ymin": 460.5677490234375,
+          "xmax": 1708.7548828125,
+          "ymax": 582.1629638671875
+        },
+        "area": 23048.037109375
+      },
+      {
+        "label": "car",
+        "confidence": 0.29360419511795044,
+        "bbox": {
+          "xmin": 1415.2391357421875,
+          "ymin": 418.88812255859375,
+          "xmax": 1566.2779541015625,
+          "ymax": 467.427734375
+        },
+        "area": 7331.36572265625
+      }
+    ]
+  },
+  {
+    "frame_id": 52,
+    "timestamp": 52.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_001530.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": [
+      {
+        "label": "car",
+        "confidence": 0.7997898459434509,
+        "bbox": {
+          "xmin": 809.3953857421875,
+          "ymin": 503.5150451660156,
+          "xmax": 1059.8031005859375,
+          "ymax": 605.3269653320312
+        },
+        "area": 25494.490234375
+      },
+      {
+        "label": "car",
+        "confidence": 0.627882719039917,
+        "bbox": {
+          "xmin": 1025.292236328125,
+          "ymin": 463.7015380859375,
+          "xmax": 1209.13037109375,
+          "ymax": 528.708984375
+        },
+        "area": 11950.84765625
+      },
+      {
+        "label": "car",
+        "confidence": 0.5630295872688293,
+        "bbox": {
+          "xmin": 945.04833984375,
+          "ymin": 439.3697204589844,
+          "xmax": 1089.731689453125,
+          "ymax": 497.9380187988281
+        },
+        "area": 8473.857421875
+      },
+      {
+        "label": "car",
+        "confidence": 0.5335432887077332,
+        "bbox": {
+          "xmin": 788.3346557617188,
+          "ymin": 479.2342529296875,
+          "xmax": 952.0384521484375,
+          "ymax": 566.8152465820312
+        },
+        "area": 14337.3408203125
+      },
+      {
+        "label": "car",
+        "confidence": 0.39449140429496765,
+        "bbox": {
+          "xmin": 1122.381591796875,
+          "ymin": 502.8996276855469,
+          "xmax": 1302.51123046875,
+          "ymax": 584.6329345703125
+        },
+        "area": 14722.5908203125
+      },
+      {
+        "label": "car",
+        "confidence": 0.3856658339500427,
+        "bbox": {
+          "xmin": 738.4112548828125,
+          "ymin": 434.0365905761719,
+          "xmax": 911.9915771484375,
+          "ymax": 512.5134887695312
+        },
+        "area": 13622.044921875
+      },
+      {
+        "label": "car",
+        "confidence": 0.3494777977466583,
+        "bbox": {
+          "xmin": 1213.3155517578125,
+          "ymin": 538.9918212890625,
+          "xmax": 1321.101318359375,
+          "ymax": 604.9282836914062
+        },
+        "area": 7107.01220703125
+      }
+    ]
+  },
+  {
+    "frame_id": 53,
+    "timestamp": 53.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_001560.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": [
+      {
+        "label": "car",
+        "confidence": 0.7934264540672302,
+        "bbox": {
+          "xmin": 801.560546875,
+          "ymin": 506.7858581542969,
+          "xmax": 1058.851318359375,
+          "ymax": 615.0738525390625
+        },
+        "area": 27861.501953125
+      },
+      {
+        "label": "car",
+        "confidence": 0.7027959823608398,
+        "bbox": {
+          "xmin": 1022.177490234375,
+          "ymin": 465.6217346191406,
+          "xmax": 1210.948974609375,
+          "ymax": 534.923095703125
+        },
+        "area": 13082.12109375
+      },
+      {
+        "label": "car",
+        "confidence": 0.6263987421989441,
+        "bbox": {
+          "xmin": 930.1126098632812,
+          "ymin": 440.2054138183594,
+          "xmax": 1094.17431640625,
+          "ymax": 498.4585876464844
+        },
+        "area": 9557.115234375
+      },
+      {
+        "label": "car",
+        "confidence": 0.576032817363739,
+        "bbox": {
+          "xmin": 1121.7802734375,
+          "ymin": 507.460693359375,
+          "xmax": 1316.48779296875,
+          "ymax": 596.2423095703125
+        },
+        "area": 17286.44921875
+      },
+      {
+        "label": "car",
+        "confidence": 0.5346128344535828,
+        "bbox": {
+          "xmin": 727.83837890625,
+          "ymin": 435.6673278808594,
+          "xmax": 907.3042602539062,
+          "ymax": 512.60546875
+        },
+        "area": 13807.771484375
+      },
+      {
+        "label": "car",
+        "confidence": 0.49467340111732483,
+        "bbox": {
+          "xmin": 770.448486328125,
+          "ymin": 483.6039733886719,
+          "xmax": 945.111328125,
+          "ymax": 573.9278564453125
+        },
+        "area": 15776.2265625
+      }
+    ]
+  },
+  {
+    "frame_id": 54,
+    "timestamp": 54.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_001590.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": [
+      {
+        "label": "car",
+        "confidence": 0.810137152671814,
+        "bbox": {
+          "xmin": 778.1620483398438,
+          "ymin": 529.5466918945312,
+          "xmax": 1055.5135498046875,
+          "ymax": 638.2933959960938
+        },
+        "area": 30161.0625
+      },
+      {
+        "label": "car",
+        "confidence": 0.809681236743927,
+        "bbox": {
+          "xmin": 1018.4612426757812,
+          "ymin": 481.9748840332031,
+          "xmax": 1220.1192626953125,
+          "ymax": 552.1680908203125
+        },
+        "area": 14155.0234375
+      },
+      {
+        "label": "car",
+        "confidence": 0.5842351913452148,
+        "bbox": {
+          "xmin": 929.477783203125,
+          "ymin": 452.7380676269531,
+          "xmax": 1092.107666015625,
+          "ymax": 509.1010437011719
+        },
+        "area": 9166.3037109375
+      },
+      {
+        "label": "car",
+        "confidence": 0.5763725638389587,
+        "bbox": {
+          "xmin": 1124.0062255859375,
+          "ymin": 527.0435180664062,
+          "xmax": 1330.9534912109375,
+          "ymax": 617.9974975585938
+        },
+        "area": 18822.677734375
+      },
+      {
+        "label": "car",
+        "confidence": 0.5276120901107788,
+        "bbox": {
+          "xmin": 713.4796142578125,
+          "ymin": 443.1954345703125,
+          "xmax": 927.3585205078125,
+          "ymax": 511.53717041015625
+        },
+        "area": 14616.85546875
+      },
+      {
+        "label": "car",
+        "confidence": 0.4040346145629883,
+        "bbox": {
+          "xmin": 751.2313842773438,
+          "ymin": 500.5688171386719,
+          "xmax": 955.1233520507812,
+          "ymax": 594.9158935546875
+        },
+        "area": 19236.611328125
+      }
+    ]
+  },
+  {
+    "frame_id": 55,
+    "timestamp": 55.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_001620.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": [
+      {
+        "label": "car",
+        "confidence": 0.8589402437210083,
+        "bbox": {
+          "xmin": 1051.8343505859375,
+          "ymin": 484.3742980957031,
+          "xmax": 1266.0,
+          "ymax": 564.0892333984375
+        },
+        "area": 17072.201171875
+      },
+      {
+        "label": "car",
+        "confidence": 0.832599401473999,
+        "bbox": {
+          "xmin": 810.8798217773438,
+          "ymin": 541.1341552734375,
+          "xmax": 1094.216064453125,
+          "ymax": 652.8717041015625
+        },
+        "area": 31659.296875
+      },
+      {
+        "label": "car",
+        "confidence": 0.6130293011665344,
+        "bbox": {
+          "xmin": 741.4500122070312,
+          "ymin": 445.5574035644531,
+          "xmax": 898.0352783203125,
+          "ymax": 521.6210327148438
+        },
+        "area": 11910.443359375
+      },
+      {
+        "label": "car",
+        "confidence": 0.5831248760223389,
+        "bbox": {
+          "xmin": 781.1448364257812,
+          "ymin": 502.51995849609375,
+          "xmax": 969.5200805664062,
+          "ymax": 603.816650390625
+        },
+        "area": 19081.7890625
+      },
+      {
+        "label": "car",
+        "confidence": 0.5830811858177185,
+        "bbox": {
+          "xmin": 971.08447265625,
+          "ymin": 451.4147644042969,
+          "xmax": 1136.366455078125,
+          "ymax": 513.859130859375
+        },
+        "area": 10320.9287109375
+      },
+      {
+        "label": "car",
+        "confidence": 0.40569475293159485,
+        "bbox": {
+          "xmin": 1276.13232421875,
+          "ymin": 581.1094970703125,
+          "xmax": 1434.318603515625,
+          "ymax": 696.5822143554688
+        },
+        "area": 18266.19921875
+      },
+      {
+        "label": "car",
+        "confidence": 0.40160316228866577,
+        "bbox": {
+          "xmin": 1167.0396728515625,
+          "ymin": 536.5380859375,
+          "xmax": 1388.1177978515625,
+          "ymax": 626.1886596679688
+        },
+        "area": 19819.78125
+      },
+      {
+        "label": "car",
+        "confidence": 0.26125234365463257,
+        "bbox": {
+          "xmin": 1161.330322265625,
+          "ymin": 536.0169677734375,
+          "xmax": 1434.303955078125,
+          "ymax": 723.2058715820312
+        },
+        "area": 51097.63671875
+      }
+    ]
+  },
+  {
+    "frame_id": 56,
+    "timestamp": 56.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_001650.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": [
+      {
+        "label": "car",
+        "confidence": 0.8411843776702881,
+        "bbox": {
+          "xmin": 1072.4974365234375,
+          "ymin": 497.8799743652344,
+          "xmax": 1283.72021484375,
+          "ymax": 575.9630737304688
+        },
+        "area": 16492.9296875
+      },
+      {
+        "label": "car",
+        "confidence": 0.8384580016136169,
+        "bbox": {
+          "xmin": 808.4826049804688,
+          "ymin": 552.217041015625,
+          "xmax": 1110.412841796875,
+          "ymax": 674.1033935546875
+        },
+        "area": 36801.17578125
+      },
+      {
+        "label": "car",
+        "confidence": 0.6679827570915222,
+        "bbox": {
+          "xmin": 971.8566284179688,
+          "ymin": 465.2413330078125,
+          "xmax": 1148.88330078125,
+          "ymax": 527.4633178710938
+        },
+        "area": 11014.951171875
+      },
+      {
+        "label": "car",
+        "confidence": 0.5224123001098633,
+        "bbox": {
+          "xmin": 744.63134765625,
+          "ymin": 456.9255065917969,
+          "xmax": 960.7430419921875,
+          "ymax": 537.449951171875
+        },
+        "area": 17402.2734375
+      },
+      {
+        "label": "car",
+        "confidence": 0.44450992345809937,
+        "bbox": {
+          "xmin": 1184.837890625,
+          "ymin": 552.6240234375,
+          "xmax": 1420.5450439453125,
+          "ymax": 659.1521606445312
+        },
+        "area": 25109.443359375
+      },
+      {
+        "label": "car",
+        "confidence": 0.40090200304985046,
+        "bbox": {
+          "xmin": 1175.7679443359375,
+          "ymin": 553.0739135742188,
+          "xmax": 1465.64697265625,
+          "ymax": 763.4027709960938
+        },
+        "area": 60969.92578125
+      },
+      {
+        "label": "car",
+        "confidence": 0.38556063175201416,
+        "bbox": {
+          "xmin": 782.7039184570312,
+          "ymin": 520.2108764648438,
+          "xmax": 1011.4861450195312,
+          "ymax": 617.927490234375
+        },
+        "area": 22355.82421875
+      },
+      {
+        "label": "car",
+        "confidence": 0.28062355518341064,
+        "bbox": {
+          "xmin": 1295.7528076171875,
+          "ymin": 597.265869140625,
+          "xmax": 1437.1214599609375,
+          "ymax": 669.35400390625
+        },
+        "area": 10191.0029296875
+      }
+    ]
+  },
+  {
+    "frame_id": 57,
+    "timestamp": 57.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_001680.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": [
+      {
+        "label": "car",
+        "confidence": 0.8842794299125671,
+        "bbox": {
+          "xmin": 1090.8961181640625,
+          "ymin": 498.54400634765625,
+          "xmax": 1308.941162109375,
+          "ymax": 584.9251098632812
+        },
+        "area": 18834.970703125
+      },
+      {
+        "label": "car",
+        "confidence": 0.837048351764679,
+        "bbox": {
+          "xmin": 812.0476684570312,
+          "ymin": 559.3306274414062,
+          "xmax": 1130.1031494140625,
+          "ymax": 689.6748046875
+        },
+        "area": 41456.6796875
+      },
+      {
+        "label": "car",
+        "confidence": 0.7628470659255981,
+        "bbox": {
+          "xmin": 986.0496826171875,
+          "ymin": 463.89459228515625,
+          "xmax": 1170.3856201171875,
+          "ymax": 526.2738647460938
+        },
+        "area": 11498.7412109375
+      },
+      {
+        "label": "car",
+        "confidence": 0.7493597269058228,
+        "bbox": {
+          "xmin": 1203.6705322265625,
+          "ymin": 559.512451171875,
+          "xmax": 1518.3177490234375,
+          "ymax": 807.2913208007812
+        },
+        "area": 77962.9296875
+      },
+      {
+        "label": "car",
+        "confidence": 0.6098995804786682,
+        "bbox": {
+          "xmin": 754.8484497070312,
+          "ymin": 455.9488220214844,
+          "xmax": 959.764892578125,
+          "ymax": 541.6190795898438
+        },
+        "area": 17555.244140625
+      },
+      {
+        "label": "car",
+        "confidence": 0.3519321382045746,
+        "bbox": {
+          "xmin": 793.6166381835938,
+          "ymin": 526.0957641601562,
+          "xmax": 1020.0869750976562,
+          "ymax": 629.4544067382812
+        },
+        "area": 23407.666015625
+      }
+    ]
+  },
+  {
+    "frame_id": 58,
+    "timestamp": 58.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_001710.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": [
+      {
+        "label": "car",
+        "confidence": 0.875885009765625,
+        "bbox": {
+          "xmin": 823.32861328125,
+          "ymin": 581.0238647460938,
+          "xmax": 1151.3192138671875,
+          "ymax": 717.741943359375
+        },
+        "area": 44842.24609375
+      },
+      {
+        "label": "car",
+        "confidence": 0.8484833836555481,
+        "bbox": {
+          "xmin": 998.5718994140625,
+          "ymin": 468.147216796875,
+          "xmax": 1189.458251953125,
+          "ymax": 535.244384765625
+        },
+        "area": 12807.93359375
+      },
+      {
+        "label": "car",
+        "confidence": 0.8428361415863037,
+        "bbox": {
+          "xmin": 1110.22705078125,
+          "ymin": 508.8531188964844,
+          "xmax": 1337.8291015625,
+          "ymax": 596.7420654296875
+        },
+        "area": 20003.705078125
+      },
+      {
+        "label": "person",
+        "confidence": 0.8288121223449707,
+        "bbox": {
+          "xmin": 1520.612548828125,
+          "ymin": 917.9379272460938,
+          "xmax": 1597.2081298828125,
+          "ymax": 1079.3138427734375
+        },
+        "area": 12360.681640625
+      },
+      {
+        "label": "car",
+        "confidence": 0.7939562201499939,
+        "bbox": {
+          "xmin": 1228.3851318359375,
+          "ymin": 577.055419921875,
+          "xmax": 1508.610107421875,
+          "ymax": 704.0289306640625
+        },
+        "area": 35581.1484375
+      },
+      {
+        "label": "car",
+        "confidence": 0.6184375882148743,
+        "bbox": {
+          "xmin": 800.5358276367188,
+          "ymin": 544.4505615234375,
+          "xmax": 1091.7957763671875,
+          "ymax": 653.1655883789062
+        },
+        "area": 31664.333984375
+      },
+      {
+        "label": "car",
+        "confidence": 0.5326246619224548,
+        "bbox": {
+          "xmin": 759.667724609375,
+          "ymin": 460.9514465332031,
+          "xmax": 973.6587524414062,
+          "ymax": 548.4763793945312
+        },
+        "area": 18729.55078125
+      },
+      {
+        "label": "umbrella",
+        "confidence": 0.403992623090744,
+        "bbox": {
+          "xmin": 1363.955322265625,
+          "ymin": 633.8471069335938,
+          "xmax": 1638.391845703125,
+          "ymax": 718.0221557617188
+        },
+        "area": 23100.70703125
+      }
+    ]
+  },
+  {
+    "frame_id": 59,
+    "timestamp": 59.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_001740.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": [
+      {
+        "label": "car",
+        "confidence": 0.8612091541290283,
+        "bbox": {
+          "xmin": 1271.96923828125,
+          "ymin": 609.6555786132812,
+          "xmax": 1565.3310546875,
+          "ymax": 741.2501831054688
+        },
+        "area": 38604.83203125
+      },
+      {
+        "label": "car",
+        "confidence": 0.8525586724281311,
+        "bbox": {
+          "xmin": 1023.7679443359375,
+          "ymin": 483.9958190917969,
+          "xmax": 1218.2325439453125,
+          "ymax": 552.3111572265625
+        },
+        "area": 13284.9150390625
+      },
+      {
+        "label": "car",
+        "confidence": 0.8408618569374084,
+        "bbox": {
+          "xmin": 1131.7001953125,
+          "ymin": 531.29296875,
+          "xmax": 1380.4888916015625,
+          "ymax": 624.0917358398438
+        },
+        "area": 23087.28515625
+      },
+      {
+        "label": "car",
+        "confidence": 0.8347594738006592,
+        "bbox": {
+          "xmin": 836.4293212890625,
+          "ymin": 616.9755859375,
+          "xmax": 1191.240234375,
+          "ymax": 762.0363159179688
+        },
+        "area": 51469.12890625
+      },
+      {
+        "label": "car",
+        "confidence": 0.7315319180488586,
+        "bbox": {
+          "xmin": 810.8388061523438,
+          "ymin": 569.2357788085938,
+          "xmax": 1134.1378173828125,
+          "ymax": 688.7688598632812
+        },
+        "area": 38644.92578125
+      },
+      {
+        "label": "car",
+        "confidence": 0.6800869703292847,
+        "bbox": {
+          "xmin": 1407.656005859375,
+          "ymin": 674.4561767578125,
+          "xmax": 1741.67626953125,
+          "ymax": 829.207763671875
+        },
+        "area": 51690.1640625
+      },
+      {
+        "label": "car",
+        "confidence": 0.6069918274879456,
+        "bbox": {
+          "xmin": 764.45361328125,
+          "ymin": 476.9125671386719,
+          "xmax": 969.9873046875,
+          "ymax": 570.4429931640625
+        },
+        "area": 19223.654296875
+      }
+    ]
+  },
+  {
+    "frame_id": 60,
+    "timestamp": 60.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_001770.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": [
+      {
+        "label": "car",
+        "confidence": 0.8611243367195129,
+        "bbox": {
+          "xmin": 1032.4735107421875,
+          "ymin": 514.25537109375,
+          "xmax": 1240.0118408203125,
+          "ymax": 588.3851318359375
+        },
+        "area": 15384.7666015625
+      },
+      {
+        "label": "car",
+        "confidence": 0.8486751914024353,
+        "bbox": {
+          "xmin": 850.4558715820312,
+          "ymin": 662.716064453125,
+          "xmax": 1220.993408203125,
+          "ymax": 818.0250244140625
+        },
+        "area": 57547.80078125
+      },
+      {
+        "label": "car",
+        "confidence": 0.8327094316482544,
+        "bbox": {
+          "xmin": 1153.5150146484375,
+          "ymin": 568.86328125,
+          "xmax": 1405.723876953125,
+          "ymax": 664.7245483398438
+        },
+        "area": 24177.060546875
+      },
+      {
+        "label": "car",
+        "confidence": 0.781055212020874,
+        "bbox": {
+          "xmin": 816.373046875,
+          "ymin": 609.0784301757812,
+          "xmax": 1117.88525390625,
+          "ymax": 739.5181884765625
+        },
+        "area": 39329.1796875
+      },
+      {
+        "label": "car",
+        "confidence": 0.7573843002319336,
+        "bbox": {
+          "xmin": 768.9556274414062,
+          "ymin": 509.9488525390625,
+          "xmax": 1017.9856567382812,
+          "ymax": 608.063720703125
+        },
+        "area": 24433.548828125
+      },
+      {
+        "label": "car",
+        "confidence": 0.730695366859436,
+        "bbox": {
+          "xmin": 1307.762451171875,
+          "ymin": 655.2522583007812,
+          "xmax": 1619.1134033203125,
+          "ymax": 809.1168823242188
+        },
+        "area": 47905.8984375
+      },
+      {
+        "label": "car",
+        "confidence": 0.6039418578147888,
+        "bbox": {
+          "xmin": 1470.0889892578125,
+          "ymin": 730.3456420898438,
+          "xmax": 1707.8133544921875,
+          "ymax": 873.0657348632812
+        },
+        "area": 33928.04296875
+      }
+    ]
+  },
+  {
+    "frame_id": 61,
+    "timestamp": 61.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_001800.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": [
+      {
+        "label": "car",
+        "confidence": 0.8694184422492981,
+        "bbox": {
+          "xmin": 1175.63671875,
+          "ymin": 566.9426879882812,
+          "xmax": 1440.6551513671875,
+          "ymax": 667.7662353515625
+        },
+        "area": 26720.09765625
+      },
+      {
+        "label": "car",
+        "confidence": 0.860529899597168,
+        "bbox": {
+          "xmin": 866.7366943359375,
+          "ymin": 669.41748046875,
+          "xmax": 1258.0902099609375,
+          "ymax": 833.4840087890625
+        },
+        "area": 64208.01171875
+      },
+      {
+        "label": "car",
+        "confidence": 0.8431475162506104,
+        "bbox": {
+          "xmin": 1522.93408203125,
+          "ymin": 738.2376708984375,
+          "xmax": 1895.861328125,
+          "ymax": 918.3782958984375
+        },
+        "area": 67179.34375
+      },
+      {
+        "label": "car",
+        "confidence": 0.8370540142059326,
+        "bbox": {
+          "xmin": 1052.6839599609375,
+          "ymin": 511.5200500488281,
+          "xmax": 1263.0477294921875,
+          "ymax": 586.9417114257812
+        },
+        "area": 15865.9853515625
+      },
+      {
+        "label": "car",
+        "confidence": 0.8167833089828491,
+        "bbox": {
+          "xmin": 1348.0762939453125,
+          "ymin": 659.2443237304688,
+          "xmax": 1674.0546875,
+          "ymax": 815.4091186523438
+        },
+        "area": 50906.34765625
+      },
+      {
+        "label": "car",
+        "confidence": 0.8077188730239868,
+        "bbox": {
+          "xmin": 829.1436767578125,
+          "ymin": 610.7950439453125,
+          "xmax": 1131.8367919921875,
+          "ymax": 749.3943481445312
+        },
+        "area": 41953.0546875
+      },
+      {
+        "label": "car",
+        "confidence": 0.7898318767547607,
+        "bbox": {
+          "xmin": 781.51904296875,
+          "ymin": 505.28338623046875,
+          "xmax": 1022.329833984375,
+          "ymax": 605.659423828125
+        },
+        "area": 24171.6328125
+      }
+    ]
+  },
+  {
+    "frame_id": 62,
+    "timestamp": 62.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_001830.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": [
+      {
+        "label": "car",
+        "confidence": 0.8769688010215759,
+        "bbox": {
+          "xmin": 877.6171875,
+          "ymin": 703.1671142578125,
+          "xmax": 1296.528076171875,
+          "ymax": 884.7969360351562
+        },
+        "area": 76086.7109375
+      },
+      {
+        "label": "car",
+        "confidence": 0.8722026944160461,
+        "bbox": {
+          "xmin": 1068.9766845703125,
+          "ymin": 517.7626953125,
+          "xmax": 1287.85546875,
+          "ymax": 601.014404296875
+        },
+        "area": 18222.033203125
+      },
+      {
+        "label": "car",
+        "confidence": 0.8680245280265808,
+        "bbox": {
+          "xmin": 1589.0020751953125,
+          "ymin": 781.825439453125,
+          "xmax": 1918.6424560546875,
+          "ymax": 980.8153076171875
+        },
+        "area": 65595.09375
+      },
+      {
+        "label": "car",
+        "confidence": 0.8552574515342712,
+        "bbox": {
+          "xmin": 1200.837646484375,
+          "ymin": 581.73583984375,
+          "xmax": 1481.727294921875,
+          "ymax": 693.7141723632812
+        },
+        "area": 31453.5546875
+      },
+      {
+        "label": "car",
+        "confidence": 0.8261085748672485,
+        "bbox": {
+          "xmin": 781.5060424804688,
+          "ymin": 517.6890258789062,
+          "xmax": 1050.9083251953125,
+          "ymax": 625.73095703125
+        },
+        "area": 29106.7421875
+      },
+      {
+        "label": "car",
+        "confidence": 0.8249496221542358,
+        "bbox": {
+          "xmin": 1396.1484375,
+          "ymin": 687.0426635742188,
+          "xmax": 1742.504150390625,
+          "ymax": 841.1885375976562
+        },
+        "area": 53389.3046875
+      },
+      {
+        "label": "car",
+        "confidence": 0.8157927989959717,
+        "bbox": {
+          "xmin": 834.8456420898438,
+          "ymin": 635.0338134765625,
+          "xmax": 1188.8045654296875,
+          "ymax": 784.5950927734375
+        },
+        "area": 52938.55078125
+      }
+    ]
+  },
+  {
+    "frame_id": 63,
+    "timestamp": 63.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_001860.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": [
+      {
+        "label": "car",
+        "confidence": 0.9135393500328064,
+        "bbox": {
+          "xmin": 886.9332275390625,
+          "ymin": 749.8445434570312,
+          "xmax": 1346.0885009765625,
+          "ymax": 954.7977905273438
+        },
+        "area": 94105.3671875
+      },
+      {
+        "label": "car",
+        "confidence": 0.8603507280349731,
+        "bbox": {
+          "xmin": 1228.2412109375,
+          "ymin": 610.8206176757812,
+          "xmax": 1526.5760498046875,
+          "ymax": 730.323486328125
+        },
+        "area": 35651.8671875
+      },
+      {
+        "label": "car",
+        "confidence": 0.8442960381507874,
+        "bbox": {
+          "xmin": 1086.2900390625,
+          "ymin": 536.5609741210938,
+          "xmax": 1316.11083984375,
+          "ymax": 625.6157836914062
+        },
+        "area": 20466.6484375
+      },
+      {
+        "label": "car",
+        "confidence": 0.832999050617218,
+        "bbox": {
+          "xmin": 781.7064208984375,
+          "ymin": 540.73828125,
+          "xmax": 1068.0245361328125,
+          "ymax": 654.533203125
+        },
+        "area": 32581.546875
+      },
+      {
+        "label": "car",
+        "confidence": 0.827958345413208,
+        "bbox": {
+          "xmin": 1447.760986328125,
+          "ymin": 731.8282470703125,
+          "xmax": 1827.0377197265625,
+          "ymax": 904.1224365234375
+        },
+        "area": 65347.17578125
+      },
+      {
+        "label": "car",
+        "confidence": 0.808792769908905,
+        "bbox": {
+          "xmin": 1669.830322265625,
+          "ymin": 844.5580444335938,
+          "xmax": 1919.227294921875,
+          "ymax": 1073.7342529296875
+        },
+        "area": 57155.8515625
+      },
+      {
+        "label": "car",
+        "confidence": 0.7673119306564331,
+        "bbox": {
+          "xmin": 838.7376708984375,
+          "ymin": 674.3895874023438,
+          "xmax": 1242.3582763671875,
+          "ymax": 832.6251220703125
+        },
+        "area": 63867.12109375
+      }
+    ]
+  },
+  {
+    "frame_id": 64,
+    "timestamp": 64.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_001890.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": [
+      {
+        "label": "car",
+        "confidence": 0.9236730933189392,
+        "bbox": {
+          "xmin": 886.9865112304688,
+          "ymin": 784.0830688476562,
+          "xmax": 1385.963134765625,
+          "ymax": 1005.2783203125
+        },
+        "area": 110371.2578125
+      },
+      {
+        "label": "car",
+        "confidence": 0.8948926329612732,
+        "bbox": {
+          "xmin": 838.2066650390625,
+          "ymin": 699.0267333984375,
+          "xmax": 1268.180908203125,
+          "ymax": 870.5086669921875
+        },
+        "area": 73732.8125
+      },
+      {
+        "label": "car",
+        "confidence": 0.8691721558570862,
+        "bbox": {
+          "xmin": 1249.776611328125,
+          "ymin": 625.2814331054688,
+          "xmax": 1566.6365966796875,
+          "ymax": 751.83056640625
+        },
+        "area": 40098.35546875
+      },
+      {
+        "label": "car",
+        "confidence": 0.8452622890472412,
+        "bbox": {
+          "xmin": 1097.832275390625,
+          "ymin": 551.54638671875,
+          "xmax": 1339.21142578125,
+          "ymax": 641.0388793945312
+        },
+        "area": 21601.62109375
+      },
+      {
+        "label": "car",
+        "confidence": 0.8386122584342957,
+        "bbox": {
+          "xmin": 1493.9373779296875,
+          "ymin": 760.0040283203125,
+          "xmax": 1900.4908447265625,
+          "ymax": 937.87890625
+        },
+        "area": 72315.6484375
+      },
+      {
+        "label": "car",
+        "confidence": 0.8382969498634338,
+        "bbox": {
+          "xmin": 1741.3828125,
+          "ymin": 901.508056640625,
+          "xmax": 1918.517578125,
+          "ymax": 1075.3623046875
+        },
+        "area": 30795.630859375
+      },
+      {
+        "label": "car",
+        "confidence": 0.8058066964149475,
+        "bbox": {
+          "xmin": 783.3795776367188,
+          "ymin": 554.7322387695312,
+          "xmax": 1083.4432373046875,
+          "ymax": 672.5707397460938
+        },
+        "area": 35359.05078125
+      }
+    ]
+  },
+  {
+    "frame_id": 65,
+    "timestamp": 65.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_001920.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": [
+      {
+        "label": "car",
+        "confidence": 0.9112202525138855,
+        "bbox": {
+          "xmin": 1162.294189453125,
+          "ymin": 821.7764892578125,
+          "xmax": 1738.8343505859375,
+          "ymax": 1060.06640625
+        },
+        "area": 137383.703125
+      },
+      {
+        "label": "car",
+        "confidence": 0.8749373555183411,
+        "bbox": {
+          "xmin": 1125.844482421875,
+          "ymin": 719.6907958984375,
+          "xmax": 1598.0679931640625,
+          "ymax": 906.2886352539062
+        },
+        "area": 88115.890625
+      },
+      {
+        "label": "car",
+        "confidence": 0.7221278548240662,
+        "bbox": {
+          "xmin": 1598.7606201171875,
+          "ymin": 671.84912109375,
+          "xmax": 1918.843994140625,
+          "ymax": 793.8812255859375
+        },
+        "area": 39060.44921875
+      },
+      {
+        "label": "car",
+        "confidence": 0.6914002299308777,
+        "bbox": {
+          "xmin": 1444.50634765625,
+          "ymin": 567.187744140625,
+          "xmax": 1682.9869384765625,
+          "ymax": 665.6129760742188
+        },
+        "area": 23472.5078125
+      },
+      {
+        "label": "car",
+        "confidence": 0.31981465220451355,
+        "bbox": {
+          "xmin": 1867.931396484375,
+          "ymin": 878.0018920898438,
+          "xmax": 1919.438232421875,
+          "ymax": 1066.9666748046875
+        },
+        "area": 9732.978515625
+      },
+      {
+        "label": "car",
+        "confidence": 0.2924993634223938,
+        "bbox": {
+          "xmin": 1579.16748046875,
+          "ymin": 649.9171752929688,
+          "xmax": 1775.883544921875,
+          "ymax": 760.1821899414062
+        },
+        "area": 21690.900390625
+      }
+    ]
+  },
+  {
+    "frame_id": 66,
+    "timestamp": 66.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_001950.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": [
+      {
+        "label": "car",
+        "confidence": 0.8993639945983887,
+        "bbox": {
+          "xmin": 1249.1258544921875,
+          "ymin": 858.7705688476562,
+          "xmax": 1850.6123046875,
+          "ymax": 1072.1512451171875
+        },
+        "area": 128345.5859375
+      },
+      {
+        "label": "car",
+        "confidence": 0.8797842264175415,
+        "bbox": {
+          "xmin": 1199.9283447265625,
+          "ymin": 750.22265625,
+          "xmax": 1703.9495849609375,
+          "ymax": 928.1369018554688
+        },
+        "area": 89672.5625
+      },
+      {
+        "label": "car",
+        "confidence": 0.8768802881240845,
+        "bbox": {
+          "xmin": 1152.8323974609375,
+          "ymin": 576.8389892578125,
+          "xmax": 1498.0335693359375,
+          "ymax": 711.27685546875
+        },
+        "area": 46408.109375
+      },
+      {
+        "label": "car",
+        "confidence": 0.8755379319190979,
+        "bbox": {
+          "xmin": 1503.790771484375,
+          "ymin": 591.8283081054688,
+          "xmax": 1783.1588134765625,
+          "ymax": 695.3373413085938
+        },
+        "area": 28917.115234375
+      },
+      {
+        "label": "car",
+        "confidence": 0.8683738708496094,
+        "bbox": {
+          "xmin": 1679.7095947265625,
+          "ymin": 683.713623046875,
+          "xmax": 1919.0035400390625,
+          "ymax": 828.03076171875
+        },
+        "area": 34534.21875
+      }
+    ]
+  },
+  {
+    "frame_id": 67,
+    "timestamp": 67.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_001980.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": [
+      {
+        "label": "car",
+        "confidence": 0.9058268666267395,
+        "bbox": {
+          "xmin": 1264.95556640625,
+          "ymin": 780.0765380859375,
+          "xmax": 1806.491455078125,
+          "ymax": 988.9989624023438
+        },
+        "area": 113138.9921875
+      },
+      {
+        "label": "car",
+        "confidence": 0.8617830872535706,
+        "bbox": {
+          "xmin": 1560.03369140625,
+          "ymin": 604.24072265625,
+          "xmax": 1860.425537109375,
+          "ymax": 715.8513793945312
+        },
+        "area": 33526.9296875
+      },
+      {
+        "label": "car",
+        "confidence": 0.8480615019798279,
+        "bbox": {
+          "xmin": 1321.0587158203125,
+          "ymin": 905.1249389648438,
+          "xmax": 1918.519775390625,
+          "ymax": 1072.2386474609375
+        },
+        "area": 99843.9296875
+      },
+      {
+        "label": "car",
+        "confidence": 0.8420628309249878,
+        "bbox": {
+          "xmin": 1199.583251953125,
+          "ymin": 591.404296875,
+          "xmax": 1559.785888671875,
+          "ymax": 726.3343505859375
+        },
+        "area": 48602.16015625
+      },
+      {
+        "label": "car",
+        "confidence": 0.8390086889266968,
+        "bbox": {
+          "xmin": 1763.972900390625,
+          "ymin": 734.8765869140625,
+          "xmax": 1919.824951171875,
+          "ymax": 866.4439086914062
+        },
+        "area": 20505.037109375
+      }
+    ]
+  },
+  {
+    "frame_id": 68,
+    "timestamp": 68.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_002010.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": [
+      {
+        "label": "car",
+        "confidence": 0.8759759068489075,
+        "bbox": {
+          "xmin": 1358.315185546875,
+          "ymin": 818.2595825195312,
+          "xmax": 1917.576416015625,
+          "ymax": 1058.1737060546875
+        },
+        "area": 134174.671875
+      },
+      {
+        "label": "car",
+        "confidence": 0.8575685024261475,
+        "bbox": {
+          "xmin": 1642.93505859375,
+          "ymin": 605.3562622070312,
+          "xmax": 1919.395751953125,
+          "ymax": 722.8973388671875
+        },
+        "area": 32495.48828125
+      },
+      {
+        "label": "car",
+        "confidence": 0.8058301210403442,
+        "bbox": {
+          "xmin": 1263.9295654296875,
+          "ymin": 588.5830688476562,
+          "xmax": 1646.279052734375,
+          "ymax": 736.1453247070312
+        },
+        "area": 56420.3515625
+      },
+      {
+        "label": "car",
+        "confidence": 0.6672760844230652,
+        "bbox": {
+          "xmin": 1462.85498046875,
+          "ymin": 977.1068115234375,
+          "xmax": 1917.836181640625,
+          "ymax": 1075.013671875
+        },
+        "area": 44545.78125
+      },
+      {
+        "label": "car",
+        "confidence": 0.35083797574043274,
+        "bbox": {
+          "xmin": 1881.6124267578125,
+          "ymin": 764.9969482421875,
+          "xmax": 1919.357421875,
+          "ymax": 838.8567504882812
+        },
+        "area": 2787.837890625
+      }
+    ]
+  },
+  {
+    "frame_id": 69,
+    "timestamp": 69.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_002040.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": [
+      {
+        "label": "car",
+        "confidence": 0.7940112352371216,
+        "bbox": {
+          "xmin": 1760.3800048828125,
+          "ymin": 655.3553466796875,
+          "xmax": 1919.8721923828125,
+          "ymax": 753.0595092773438
+        },
+        "area": 15583.05078125
+      },
+      {
+        "label": "car",
+        "confidence": 0.78169184923172,
+        "bbox": {
+          "xmin": 1351.9403076171875,
+          "ymin": 633.71630859375,
+          "xmax": 1741.1229248046875,
+          "ymax": 797.8119506835938
+        },
+        "area": 63863.171875
+      },
+      {
+        "label": "car",
+        "confidence": 0.685967206954956,
+        "bbox": {
+          "xmin": 1516.3309326171875,
+          "ymin": 927.656982421875,
+          "xmax": 1918.467529296875,
+          "ymax": 1073.504150390625
+        },
+        "area": 58650.484375
+      }
+    ]
+  },
+  {
+    "frame_id": 70,
+    "timestamp": 70.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_002070.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": [
+      {
+        "label": "car",
+        "confidence": 0.8501136898994446,
+        "bbox": {
+          "xmin": 1427.2950439453125,
+          "ymin": 719.4217529296875,
+          "xmax": 1890.2186279296875,
+          "ymax": 902.9395751953125
+        },
+        "area": 84954.7265625
+      },
+      {
+        "label": "car",
+        "confidence": 0.69168621301651,
+        "bbox": {
+          "xmin": 1858.5003662109375,
+          "ymin": 733.0867309570312,
+          "xmax": 1919.4891357421875,
+          "ymax": 840.585205078125
+        },
+        "area": 6556.19970703125
+      }
+    ]
+  },
+  {
+    "frame_id": 71,
+    "timestamp": 71.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_002100.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": [
+      {
+        "label": "car",
+        "confidence": 0.860790491104126,
+        "bbox": {
+          "xmin": 1461.6322021484375,
+          "ymin": 747.2969970703125,
+          "xmax": 1900.6220703125,
+          "ymax": 934.7384033203125
+        },
+        "area": 82284.875
+      }
+    ]
+  },
+  {
+    "frame_id": 72,
+    "timestamp": 72.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_002130.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": [
+      {
+        "label": "car",
+        "confidence": 0.896898090839386,
+        "bbox": {
+          "xmin": 1490.4825439453125,
+          "ymin": 758.65869140625,
+          "xmax": 1919.7337646484375,
+          "ymax": 956.0125122070312
+        },
+        "area": 84714.3671875
+      }
+    ]
+  },
+  {
+    "frame_id": 73,
+    "timestamp": 73.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_002160.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": [
+      {
+        "label": "car",
+        "confidence": 0.8779261708259583,
+        "bbox": {
+          "xmin": 1534.7978515625,
+          "ymin": 788.411865234375,
+          "xmax": 1917.8819580078125,
+          "ymax": 993.86279296875
+        },
+        "area": 78704.984375
+      }
+    ]
+  },
+  {
+    "frame_id": 74,
+    "timestamp": 74.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_002190.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": [
+      {
+        "label": "car",
+        "confidence": 0.7347295880317688,
+        "bbox": {
+          "xmin": 1592.9326171875,
+          "ymin": 859.7005004882812,
+          "xmax": 1919.23828125,
+          "ymax": 1076.7037353515625
+        },
+        "area": 70809.3828125
+      }
+    ]
+  },
+  {
+    "frame_id": 75,
+    "timestamp": 75.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_002220.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": [
+      {
+        "label": "car",
+        "confidence": 0.8591934442520142,
+        "bbox": {
+          "xmin": 1582.8460693359375,
+          "ymin": 808.883056640625,
+          "xmax": 1918.8541259765625,
+          "ymax": 973.14111328125
+        },
+        "area": 55192.03125
+      },
+      {
+        "label": "car",
+        "confidence": 0.5904521942138672,
+        "bbox": {
+          "xmin": 1129.7813720703125,
+          "ymin": 883.6825561523438,
+          "xmax": 1638.2249755859375,
+          "ymax": 1077.603271484375
+        },
+        "area": 98597.75
+      }
+    ]
+  },
+  {
+    "frame_id": 76,
+    "timestamp": 76.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_002250.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": [
+      {
+        "label": "car",
+        "confidence": 0.8388406038284302,
+        "bbox": {
+          "xmin": 1662.583740234375,
+          "ymin": 862.4917602539062,
+          "xmax": 1918.960693359375,
+          "ymax": 1044.903076171875
+        },
+        "area": 46766.05859375
+      }
+    ]
+  },
+  {
+    "frame_id": 77,
+    "timestamp": 77.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_002280.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": [
+      {
+        "label": "car",
+        "confidence": 0.461871862411499,
+        "bbox": {
+          "xmin": 1739.02587890625,
+          "ymin": 919.1991577148438,
+          "xmax": 1919.479248046875,
+          "ymax": 1076.43603515625
+        },
+        "area": 28373.923828125
+      }
+    ]
+  },
+  {
+    "frame_id": 78,
+    "timestamp": 78.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_002310.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 79,
+    "timestamp": 79.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_002340.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 80,
+    "timestamp": 80.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_002370.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 81,
+    "timestamp": 81.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_002400.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 82,
+    "timestamp": 82.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_002430.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 83,
+    "timestamp": 83.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_002460.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 84,
+    "timestamp": 84.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_002490.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 85,
+    "timestamp": 85.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_002520.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 86,
+    "timestamp": 86.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_002550.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 87,
+    "timestamp": 87.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_002580.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 88,
+    "timestamp": 88.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_002610.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 89,
+    "timestamp": 89.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_002640.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 90,
+    "timestamp": 90.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_002670.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 91,
+    "timestamp": 91.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_002700.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 92,
+    "timestamp": 92.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_002730.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 93,
+    "timestamp": 93.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_002760.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 94,
+    "timestamp": 94.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_002790.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 95,
+    "timestamp": 95.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_002820.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 96,
+    "timestamp": 96.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_002850.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 97,
+    "timestamp": 97.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_002880.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 98,
+    "timestamp": 98.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_002910.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 99,
+    "timestamp": 99.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_002940.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 100,
+    "timestamp": 100.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_002970.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 101,
+    "timestamp": 101.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_003000.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 102,
+    "timestamp": 102.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_003030.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 103,
+    "timestamp": 103.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_003060.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 104,
+    "timestamp": 104.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_003090.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 105,
+    "timestamp": 105.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_003120.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 106,
+    "timestamp": 106.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_003150.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 107,
+    "timestamp": 107.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_003180.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 108,
+    "timestamp": 108.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_003210.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 109,
+    "timestamp": 109.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_003240.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": [
+      {
+        "label": "truck",
+        "confidence": 0.37234869599342346,
+        "bbox": {
+          "xmin": 1555.7794189453125,
+          "ymin": 507.5008239746094,
+          "xmax": 1918.5948486328125,
+          "ymax": 1068.62744140625
+        },
+        "area": 203585.390625
+      }
+    ]
+  },
+  {
+    "frame_id": 110,
+    "timestamp": 110.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_003270.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": [
+      {
+        "label": "truck",
+        "confidence": 0.46275514364242554,
+        "bbox": {
+          "xmin": 1563.3021240234375,
+          "ymin": 532.7195434570312,
+          "xmax": 1917.854736328125,
+          "ymax": 1065.316162109375
+        },
+        "area": 188833.515625
+      }
+    ]
+  },
+  {
+    "frame_id": 111,
+    "timestamp": 111.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_003300.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": [
+      {
+        "label": "truck",
+        "confidence": 0.4460223913192749,
+        "bbox": {
+          "xmin": 1622.9781494140625,
+          "ymin": 589.3983764648438,
+          "xmax": 1917.8995361328125,
+          "ymax": 1067.520751953125
+        },
+        "area": 141008.515625
+      }
+    ]
+  },
+  {
+    "frame_id": 112,
+    "timestamp": 112.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_003330.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 113,
+    "timestamp": 113.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_003360.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 114,
+    "timestamp": 114.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_003390.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 115,
+    "timestamp": 115.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_003420.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": [
+      {
+        "label": "bench",
+        "confidence": 0.6283509135246277,
+        "bbox": {
+          "xmin": 1771.817138671875,
+          "ymin": 673.922119140625,
+          "xmax": 1919.096923828125,
+          "ymax": 1076.3505859375
+        },
+        "area": 59269.578125
+      },
+      {
+        "label": "chair",
+        "confidence": 0.43131911754608154,
+        "bbox": {
+          "xmin": 1771.086669921875,
+          "ymin": 675.1115112304688,
+          "xmax": 1919.205078125,
+          "ymax": 1079.1123046875
+        },
+        "area": 59839.953125
+      }
+    ]
+  },
+  {
+    "frame_id": 116,
+    "timestamp": 116.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_003450.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": [
+      {
+        "label": "bench",
+        "confidence": 0.7402617931365967,
+        "bbox": {
+          "xmin": 1799.7850341796875,
+          "ymin": 674.4779663085938,
+          "xmax": 1918.903564453125,
+          "ymax": 1074.0528564453125
+        },
+        "area": 47596.7734375
+      }
+    ]
+  },
+  {
+    "frame_id": 117,
+    "timestamp": 117.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\drone_footage_frames\\frame_003480.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": [
+      {
+        "label": "bench",
+        "confidence": 0.7878327965736389,
+        "bbox": {
+          "xmin": 1804.401611328125,
+          "ymin": 584.98291015625,
+          "xmax": 1919.0322265625,
+          "ymax": 1069.84912109375
+        },
+        "area": 55580.51171875
+      }
+    ]
+  }
+]
