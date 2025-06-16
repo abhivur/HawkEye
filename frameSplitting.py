@@ -3,8 +3,10 @@ import os
 import argparse
 from pathlib import Path
 
+FRAMES_PER_SEC = 30
 
-def extract_frames(video_path, output_dir=None, frame_interval=3, image_format='jpg', 
+
+def extract_frames(video_path, output_dir=None, frame_interval=FRAMES_PER_SEC, image_format='jpg', 
                    resize_width=None, resize_height=None, quality=95):
     """
     Extract frames from a video file and save them as individual images.
@@ -123,13 +125,13 @@ def extract_frames(video_path, output_dir=None, frame_interval=3, image_format='
 
 def main():
     # Hardcoded for testing - no command line arguments needed
-    video_path = r"C:\Users\lukev\Downloads\IMG_6231.mov"  # Note the 'r' prefix
+    video_path = r"C:\Users\lukev\Projects\HawkEye\input_videos\panover.mp4"  
     
     try:
         extract_frames(
             video_path=video_path,
-            output_dir=None,  # Will create IMG_6227_frames folder
-            frame_interval=3,
+            output_dir=None,  # Will create {file_name}_frames folder
+            frame_interval=FRAMES_PER_SEC,
             image_format='jpg'
         )
     except Exception as e:
