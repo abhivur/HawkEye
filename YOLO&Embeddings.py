@@ -16,14 +16,21 @@ from sentence_transformers import SentenceTransformer
 # =============================================================================
 
 # Path to your images folder (CHANGE THIS!)
-IMAGES_FOLDER_PATH = "C:/Users/lukev/Projects/HawkEye/drone_footage_frames"  # Folder containing all images
+IMAGES_FOLDER_PATH = "C:/Users/lukev/Projects/HawkEye/panover_frames"  # Folder containing all images
 # Examples: 
 # IMAGES_FOLDER_PATH = "C:/Users/YourName/Desktop/photos/"     # Windows
 # IMAGES_FOLDER_PATH = "/home/user/images/"                   # Linux
 # IMAGES_FOLDER_PATH = "/Users/username/Pictures/dataset/"    # Mac
 
+# Extract folder name and generate output JSON path dynamically
+folder_name = os.path.basename(IMAGES_FOLDER_PATH.rstrip('/\\'))
+if folder_name.endswith('_frames'):
+    base_name = folder_name[:-7]  # Remove '_frames' suffix
+else:
+    base_name = folder_name  # Fallback if pattern doesn't match
+
 # Output JSON file for the mission planning system
-OUTPUT_JSON_PATH = "frame_detection_results.json"
+OUTPUT_JSON_PATH = f"{base_name}_detection_results.json"
 
 
 
@@ -103,7 +110,6 @@ def process_all_frames_and_save_json():
     total_objects_processed = 0
     
     for img_index, image_file in enumerate(image_files, 1):
-        print(f"\n📸 Processing frame {img_index}/{len(image_files)}: {os.path.basename(image_file)}")
         
         # Generate GPS coordinates - NULL since we don't know actual location
         gps_coords = [None, None, None]  # [lat, lon, alt] - will be null in JSON
@@ -115,7 +121,6 @@ def process_all_frames_and_save_json():
         objects = detect_individual_objects(image_file)
         
         if not objects:
-            print(f"   ℹ️  No objects detected")
             # Still add frame data even with no objects
             frame_data = {
                 "frame_id": img_index,
@@ -127,13 +132,11 @@ def process_all_frames_and_save_json():
             frame_data_list.append(frame_data)
             continue
         
-        print(f"   ✅ Detected {len(objects)} objects")
         total_objects_processed += len(objects)
         
         # Show detected objects
         detected_objects_json = []
         for i, obj in enumerate(objects, 1):
-            print(f"      {i}. {obj['enhanced_caption']} (conf: {obj['confidence']:.3f})")
             
             # Convert to JSON format expected by mission planning system
             obj_json = {
