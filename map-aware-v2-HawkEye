@@ -1236,17 +1236,37 @@ class DensityAdaptiveCorridorGenerator:
 # =============================================================================
 
 class SimpleQueryParser:
-    """Parse user queries to understand what they're asking"""
+    """Parse user queries to understand what they're asking - FLEXIBLE VERSION"""
     
     def parse_query(self, user_input: str) -> Tuple[QueryType, Dict[str, Any]]:
-        """Parse user query and extract parameters"""
+        """Parse user query and extract parameters - handles all query types"""
         user_input_lower = user_input.lower()
         
-        # Extract corridor width if mentioned
-        corridor_width = None
-        use_adaptive = True  # Default to adaptive since it's better
+        # Define target object keywords
+        target_keywords = {
+            "person": ["person", "people", "human", "student", "pedestrian", "staff", "faculty"],
+            "vehicle": ["car", "truck", "vehicle", "suv", "motorcycle", "bus", "van"],
+            "building": ["building", "structure", "house", "facility", "dorm", "classroom"],
+            "furniture": ["bench", "chair", "table", "furniture", "dining table"],
+            "equipment": ["equipment", "machinery", "construction"],
+            "umbrella": ["umbrella", "shade", "canopy"],
+            "fire hydrant": ["fire hydrant", "hydrant"],
+            "general": ["object", "item", "thing"]
+        }
         
-        if "around" in user_input_lower or "corridor" in user_input_lower:
+        # Extract target objects from query
+        target_objects = []
+        for target, keywords in target_keywords.items():
+            if any(keyword in user_input_lower for keyword in keywords):
+                target_objects.append(target)
+        
+        # Determine query type based on intent
+        if any(word in user_input_lower for word in ["find", "search", "locate", "where", "most likely"]):
+            return QueryType.OBJECT_LOCATION, {"target_objects": target_objects}
+        
+        elif any(word in user_input_lower for word in ["around", "corridor", "survey area", "meters around"]):
+            # Extract corridor width if mentioned
+            corridor_width = None
             import re
             width_match = re.search(r'(\d+)\s*(?:meter|m\b|feet)', user_input_lower)
             if width_match:
@@ -1255,23 +1275,17 @@ class SimpleQueryParser:
                     corridor_width = corridor_width * 0.3048
             
             return QueryType.CORRIDOR_SURVEY, {
-                "corridor_width_meters": corridor_width or 10.0,
-                "use_adaptive": use_adaptive
+                "corridor_width_meters": corridor_width or 15.0,
+                "use_adaptive": True,
+                "target_objects": target_objects  # Include targets for adaptive planning
             }
         
-        # Rest of your existing photo/object/flight logic stays the same...
-        if any(word in user_input_lower for word in ["photo", "fps", "frame", "second", "picture"]):
-            return QueryType.PHOTO_OPTIMIZATION, {}
+        elif any(word in user_input_lower for word in ["photo", "fps", "frame", "second", "picture", "capture"]):
+            return QueryType.PHOTO_OPTIMIZATION, {"target_objects": target_objects}
         
-        if any(word in user_input_lower for word in ["find", "where", "locate", "most"]):
-            target_objects = []
-            object_keywords = ["person", "people", "vehicle", "car", "truck", "cone", "bench", "furniture"]
-            for keyword in object_keywords:
-                if keyword in user_input_lower:
-                    target_objects.append(keyword)
-            return QueryType.OBJECT_LOCATION, {"target_objects": target_objects}
-        
-        return QueryType.FLIGHT_OPTIMIZATION, {}
+        else:
+            # Default to flight optimization with targets
+            return QueryType.FLIGHT_OPTIMIZATION, {"target_objects": target_objects}
 
 # =============================================================================
 # FLIGHT DATA PROCESSOR (YOUR EXISTING CODE)
@@ -1728,7 +1742,7 @@ class EnhancedSingleFlightMissionAnalyzer:
         # Generate basic flight statistics
         flight_stats = self._calculate_flight_statistics(flight_plan, frames)
         
-        # Process based on query type
+        # Process based on query type - FLEXIBLE HANDLING
         result = {
             "query": user_query,
             "query_type": query_type.value,
@@ -1737,9 +1751,8 @@ class EnhancedSingleFlightMissionAnalyzer:
             "analysis_results": {}
         }
         
-        # Your existing query processing logic
         if query_type == QueryType.CORRIDOR_SURVEY:
-            corridor_width = query_params.get("corridor_width_meters", 10.0)
+            corridor_width = query_params.get("corridor_width_meters", 15.0)
             use_adaptive = query_params.get("use_adaptive", True)
             
             if use_adaptive:
@@ -1755,22 +1768,77 @@ class EnhancedSingleFlightMissionAnalyzer:
                 result["analysis_results"] = self._format_corridor_results(corridor_plan)
                 result["survey_type"] = "uniform"
                 
-        elif query_type == QueryType.PHOTO_OPTIMIZATION:
-            photo_recommendations = self.photo_analyzer.analyze_photo_requirements(frames, flight_plan)
-            result["analysis_results"] = self._format_photo_results(photo_recommendations)
-            
         elif query_type == QueryType.OBJECT_LOCATION:
             target_objects = query_params.get("target_objects", [])
             object_locations = self.object_analyzer.find_object_locations(frames, target_objects)
             result["analysis_results"] = self._format_object_results(object_locations, target_objects)
             
+            # GENERATE VISUAL MAP FOR OBJECT LOCATION TOO!
+            if object_locations:
+                # Create a simplified adaptive plan focused on object locations
+                object_adaptive_plan = self._create_object_focused_plan(object_locations, flight_plan, heat_map)
+                result["object_survey_plan"] = self._format_adaptive_corridor_results(object_adaptive_plan)
+                result["has_visual_map"] = True
+            else:
+                result["has_visual_map"] = False
+                
+        elif query_type == QueryType.PHOTO_OPTIMIZATION:
+            photo_recommendations = self.photo_analyzer.analyze_photo_requirements(frames, flight_plan)
+            result["analysis_results"] = self._format_photo_results(photo_recommendations)
+            
         else:  # FLIGHT_OPTIMIZATION
-            result["analysis_results"] = self._format_general_analysis(frames, flight_plan)
+            target_objects = query_params.get("target_objects", [])
+            if target_objects:
+                # Treat as object location with general optimization
+                object_locations = self.object_analyzer.find_object_locations(frames, target_objects)
+                result["analysis_results"] = self._format_object_results(object_locations, target_objects)
+                if object_locations:
+                    object_adaptive_plan = self._create_object_focused_plan(object_locations, flight_plan, heat_map)
+                    result["object_survey_plan"] = self._format_adaptive_corridor_results(object_adaptive_plan)
+                    result["has_visual_map"] = True
+            else:
+                result["analysis_results"] = self._format_general_analysis(frames, flight_plan)
         
         # Save all results including heat map
         self._save_enhanced_results(result, heat_map, flight_plan, flight_plan_file)
         
         return result
+    
+    def _create_object_focused_plan(self, object_locations: List[ObjectLocation], 
+                                  flight_plan: FlightPlan, heat_map: HeatMapData) -> AdaptiveCorridorPlan:
+        """Create an adaptive plan focused on where objects were actually found"""
+        
+        # Create waypoints around object locations
+        waypoints = []
+        for i, obj_loc in enumerate(object_locations[:10]):  # Limit to 10 objects
+            lat, lon = obj_loc.gps_location
+            
+            # Create search pattern around each object location
+            for angle in [0, 90, 180, 270]:
+                angle_rad = math.radians(angle)
+                offset_meters = 20  # 20 meter search radius
+                lat_offset, lon_offset = meters_to_degrees(offset_meters, lat)
+                
+                new_lat = lat + lat_offset * math.cos(angle_rad)
+                new_lon = lon + lon_offset * math.sin(angle_rad)
+                
+                waypoint = FlightPoint(
+                    lat=new_lat, lon=new_lon, alt=100,
+                    name=f"obj_search_{i}_{angle}_{obj_loc.object_type}"
+                )
+                waypoints.append(waypoint)
+        
+        # Create dummy adaptive plan for visualization
+        return AdaptiveCorridorPlan(
+            corridor_width_meters=20.0,
+            density_zones=[],  # Not used for object-focused plans
+            total_waypoints=len(waypoints),
+            high_density_waypoints=len(waypoints),  # All are high priority for objects
+            medium_density_waypoints=0,
+            low_density_waypoints=0,
+            coverage_efficiency=100.0,
+            all_waypoints=waypoints
+        )
     
     def _calculate_flight_statistics(self, flight_plan: FlightPlan, 
         frames: List[FlightFrame]) -> Dict[str, Any]:
@@ -1981,7 +2049,7 @@ class EnhancedSingleFlightMissionAnalyzer:
     
     def _save_enhanced_results(self, results: Dict[str, Any], heat_map: HeatMapData, 
                              flight_plan: FlightPlan, original_file: str):
-        """Save enhanced results with QGIS background PNG"""
+        """Save enhanced results with flexible map generation"""
         
         ensure_hawkeye_output_directory()
         base_name = Path(original_file).stem
@@ -2000,19 +2068,36 @@ class EnhancedSingleFlightMissionAnalyzer:
         )
         results["heat_map_png"] = heat_map_png_path
         
-        # Generate corridor survey with QGIS background if applicable
+        # Generate visual survey map for ANY query that has waypoints
+        should_generate_map = False
+        adaptive_plan = None
+        
         if results["query_type"] == "corridor_survey" and "analysis_results" in results:
+            # Corridor survey - use existing logic
             analysis = results["analysis_results"]
-            if "density_zones" in analysis:  # Adaptive corridor
-                # Reconstruct adaptive plan for visualization
+            if "density_zones" in analysis:
                 adaptive_plan = self._reconstruct_adaptive_plan(analysis)
-                corridor_png_path = get_hawkeye_output_path(f"corridor_survey_with_map_{base_name}.png")
+                should_generate_map = True
                 
-                # Try QGIS version first, fall back to matplotlib
-                self.heat_map_generator.generate_corridor_survey_with_qgis_background(
-                    adaptive_plan, heat_map, corridor_png_path, flight_plan, base_name
-                )
-                results["corridor_png"] = corridor_png_path
+        elif results["query_type"] == "object_location" and results.get("has_visual_map"):
+            # Object location with visual map
+            if "object_survey_plan" in results:
+                adaptive_plan = self._reconstruct_adaptive_plan(results["object_survey_plan"])
+                should_generate_map = True
+                
+        elif results["query_type"] == "flight_optimization" and results.get("has_visual_map"):
+            # Flight optimization with objects
+            if "object_survey_plan" in results:
+                adaptive_plan = self._reconstruct_adaptive_plan(results["object_survey_plan"])
+                should_generate_map = True
+        
+        # Generate the numbered waypoint map if we have an adaptive plan
+        if should_generate_map and adaptive_plan:
+            corridor_png_path = get_hawkeye_output_path(f"survey_map_{base_name}.png")
+            self.heat_map_generator.generate_corridor_survey_with_qgis_background(
+                adaptive_plan, heat_map, corridor_png_path, flight_plan, base_name
+            )
+            results["survey_map_png"] = corridor_png_path
         
         logger.info(f"📁 Enhanced results saved to: {HAWKEYE_OUTPUT_FOLDER}/")
     
@@ -2143,8 +2228,8 @@ def enhanced_main():
     print()
     
     # File paths
-    flight_plan_file = "panover.kml"
-    detection_json_file = "panover_detection_results.json"
+    flight_plan_file = "casita-to-camp.kml"
+    detection_json_file = "drone_footage_detection_results.json"
     
     # Check files exist
     if not Path(flight_plan_file).exists():
@@ -2160,7 +2245,7 @@ def enhanced_main():
     print(f"📊 Detection data: {detection_json_file}")
     
     # Get user query
-    user_query = "Survey the area 15 meters around this flight path"
+    user_query = "Which area is most likely to have people?"
     print(f"❓ Query: {user_query}")
     
     # Use enhanced analyzer
