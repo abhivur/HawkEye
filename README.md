@@ -1,4 +1,4 @@
-### HawkEye 
+# HawkEye 
 ## Smart Drone Flight Planning System
-# By Luke Voinov and Abhinav Vurakaranam
+### By Luke Voinov and Abhinav Vurakaranam
 
