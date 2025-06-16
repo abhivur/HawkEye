@@ -1,0 +1,252 @@
+{
+  "query": "Survey the area 15 meters around this flight path",
+  "query_type": "corridor_survey",
+  "flight_statistics": {
+    "original_waypoints": 5,
+    "flight_distance_meters": 25.46236537942315,
+    "total_frames": 26,
+    "frames_with_detections": 12,
+    "total_objects_detected": 94,
+    "unique_object_types": 6,
+    "object_type_counts": {
+      "car": 2,
+      "fire hydrant": 1,
+      "umbrella": 9,
+      "chair": 61,
+      "person": 16,
+      "dining table": 5
+    }
+  },
+  "heat_map_statistics": {
+    "grid_size_meters": 15.0,
+    "total_cells": 25,
+    "active_cells": 2,
+    "max_density_score": 59.0,
+    "intensity_distribution": {
+      "very_high": 2,
+      "high": 0,
+      "medium": 0,
+      "low": 0,
+      "none": 23
+    },
+    "coverage_area_sqkm": 0.005625,
+    "information_density_percent": 8.0
+  },
+  "analysis_results": {
+    "corridor_width_meters": 15.0,
+    "survey_type": "adaptive_density",
+    "total_waypoints": 24,
+    "waypoint_distribution": {
+      "high_density_areas": 24,
+      "medium_density_areas": 0,
+      "low_density_areas": 0
+    },
+    "coverage_efficiency_percent": 100.0,
+    "coverage_statistics": {
+      "total_zones": 4,
+      "high_priority_zones": 4,
+      "medium_priority_zones": 0,
+      "low_priority_zones": 0,
+      "total_objects_found": 376,
+      "average_density": 147.66892014826558
+    },
+    "density_zones": [
+      {
+        "zone_id": "zone_1",
+        "start_location": {
+          "lat": 36.27170127948715,
+          "lon": -105.5774543331472
+        },
+        "end_location": {
+          "lat": 36.27173320571388,
+          "lon": -105.5774030282777
+        },
+        "distance_meters": 5.8,
+        "objects_detected": 94,
+        "unique_object_types": 6,
+        "density_score": 163.79,
+        "survey_intensity": "high",
+        "recommended_passes": 3,
+        "waypoint_spacing_meters": 5.0
+      },
+      {
+        "zone_id": "zone_2",
+        "start_location": {
+          "lat": 36.27173320571388,
+          "lon": -105.5774030282777
+        },
+        "end_location": {
+          "lat": 36.27176344394227,
+          "lon": -105.5773294254596
+        },
+        "distance_meters": 7.4,
+        "objects_detected": 94,
+        "unique_object_types": 6,
+        "density_score": 128.93,
+        "survey_intensity": "high",
+        "recommended_passes": 3,
+        "waypoint_spacing_meters": 5.0
+      },
+      {
+        "zone_id": "zone_3",
+        "start_location": {
+          "lat": 36.27176344394227,
+          "lon": -105.5773294254596
+        },
+        "end_location": {
+          "lat": 36.27177454214323,
+          "lon": -105.5772796384154
+        },
+        "distance_meters": 4.6,
+        "objects_detected": 94,
+        "unique_object_types": 6,
+        "density_score": 204.99,
+        "survey_intensity": "high",
+        "recommended_passes": 3,
+        "waypoint_spacing_meters": 5.0
+      },
+      {
+        "zone_id": "zone_4",
+        "start_location": {
+          "lat": 36.27177454214323,
+          "lon": -105.5772796384154
+        },
+        "end_location": {
+          "lat": 36.27177812128294,
+          "lon": -105.5771948002466
+        },
+        "distance_meters": 7.6,
+        "objects_detected": 94,
+        "unique_object_types": 6,
+        "density_score": 125.43,
+        "survey_intensity": "high",
+        "recommended_passes": 3,
+        "waypoint_spacing_meters": 5.0
+      }
+    ],
+    "waypoint_locations": [
+      {
+        "lat": 36.27175476726789,
+        "lon": -105.57750554095087,
+        "name": "high_66_p0_00"
+      },
+      {
+        "lat": 36.271786693494626,
+        "lon": -105.5774542361023,
+        "name": "high_66_p0_01"
+      },
+      {
+        "lat": 36.2716477917064,
+        "lon": -105.57740312534354,
+        "name": "high_66_p1_00"
+      },
+      {
+        "lat": 36.27167971793313,
+        "lon": -105.5773518204531,
+        "name": "high_66_p1_01"
+      },
+      {
+        "lat": 36.2716477917064,
+        "lon": -105.57740312534354,
+        "name": "high_66_p2_00"
+      },
+      {
+        "lat": 36.27167971793313,
+        "lon": -105.5773518204531,
+        "name": "high_66_p2_01"
+      },
+      {
+        "lat": 36.27179340763426,
+        "lon": -105.5774410792124,
+        "name": "high_442_p0_00"
+      },
+      {
+        "lat": 36.27182364586265,
+        "lon": -105.57736747640904,
+        "name": "high_442_p0_01"
+      },
+      {
+        "lat": 36.271673003793495,
+        "lon": -105.577364977343,
+        "name": "high_442_p1_00"
+      },
+      {
+        "lat": 36.271703242021886,
+        "lon": -105.57729137451015,
+        "name": "high_442_p1_01"
+      },
+      {
+        "lat": 36.271673003793495,
+        "lon": -105.577364977343,
+        "name": "high_442_p2_00"
+      },
+      {
+        "lat": 36.271703242021886,
+        "lon": -105.57729137451015,
+        "name": "high_442_p2_01"
+      },
+      {
+        "lat": 36.271828568044505,
+        "lon": -105.5773517597102,
+        "name": "high_367_p0_00"
+      },
+      {
+        "lat": 36.27183966624546,
+        "lon": -105.57730197266918,
+        "name": "high_367_p0_01"
+      },
+      {
+        "lat": 36.271698319840034,
+        "lon": -105.577307091209,
+        "name": "high_367_p1_00"
+      },
+      {
+        "lat": 36.27170941804099,
+        "lon": -105.57725730416163,
+        "name": "high_367_p1_01"
+      },
+      {
+        "lat": 36.271698319840034,
+        "lon": -105.577307091209,
+        "name": "high_367_p2_00"
+      },
+      {
+        "lat": 36.27170941804099,
+        "lon": -105.57725730416163,
+        "name": "high_367_p2_01"
+      },
+      {
+        "lat": 36.27184201739148,
+        "lon": -105.57728401795607,
+        "name": "high_294_p0_00"
+      },
+      {
+        "lat": 36.27184559653119,
+        "lon": -105.57719917978747,
+        "name": "high_294_p0_01"
+      },
+      {
+        "lat": 36.271707066894976,
+        "lon": -105.57727525887474,
+        "name": "high_294_p1_00"
+      },
+      {
+        "lat": 36.27171064603469,
+        "lon": -105.57719042070573,
+        "name": "high_294_p1_01"
+      },
+      {
+        "lat": 36.271707066894976,
+        "lon": -105.57727525887474,
+        "name": "high_294_p2_00"
+      },
+      {
+        "lat": 36.27171064603469,
+        "lon": -105.57719042070573,
+        "name": "high_294_p2_01"
+      }
+    ],
+    "summary": "Generated 24 adaptive waypoints: 24 in high-density areas, 0 in medium-density areas, 0 in low-density areas. Coverage efficiency: 100.0%"
+  },
+  "survey_type": "adaptive_density"
+}
