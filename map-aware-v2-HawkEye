@@ -1,0 +1,2372 @@
+#!/usr/bin/env python3
+r"""
+Complete Enhanced Single-Flight Drone Mission Planning System
+Integrates your existing functionality with heat map generation and comprehensive KML outputs.
+
+What this system CAN do with single-flight input:
+- Generate corridor survey patterns around the actual flight path
+- Recommend photo frequencies based on object density found in this flight
+- Identify where objects were actually detected along the route
+- Create optimized flight plans focused on areas where objects were found
+- Generate information density heat maps
+- Output comprehensive KML visualizations
+
+What this system CANNOT do (requires historical data):
+- Predict future detection probabilities
+- Calculate "success rates" or "confidence scores"
+- Make statistical predictions about areas not flown
+"""
+
+import os
+import json
+import logging
+import numpy as np
+import math
+from pathlib import Path
+from typing import Dict, List, Tuple, Optional, Any
+from dataclasses import dataclass
+from enum import Enum
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+
+# Import basic map extraction components
+from map_extract import (
+    FlightPlan, FlightPoint, FlightPlanParser, 
+    haversine_distance, meters_to_degrees
+)
+
+# Setup logging
+logging.basicConfig(level=logging.WARNING, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
+# =============================================================================
+# OUTPUT CONFIGURATION
+# =============================================================================
+
+HAWKEYE_OUTPUT_FOLDER = "hawkeye_output"
+
+def ensure_hawkeye_output_directory():
+    """Create hawkeye_output directory if it doesn't exist"""
+    Path(HAWKEYE_OUTPUT_FOLDER).mkdir(exist_ok=True)
+    logger.info(f"📁 Output directory ready: {HAWKEYE_OUTPUT_FOLDER}")
+
+def get_hawkeye_output_path(filename: str) -> str:
+    """Get full path for output file in hawkeye_output folder"""
+    ensure_hawkeye_output_directory()
+    return str(Path(HAWKEYE_OUTPUT_FOLDER) / filename)
+
+# =============================================================================
+# DATA STRUCTURES
+# =============================================================================
+
+class QueryType(Enum):
+    CORRIDOR_SURVEY = "corridor_survey"
+    PHOTO_OPTIMIZATION = "photo_optimization" 
+    OBJECT_LOCATION = "object_location"
+    FLIGHT_OPTIMIZATION = "flight_optimization"
+
+@dataclass
+class DetectedObject:
+    """Object from JSON detection results"""
+    label: str
+    confidence: float
+    bbox: Dict[str, float]
+    area: float
+
+@dataclass
+class FlightFrame:
+    """Single frame with GPS location and detections"""
+    frame_id: int
+    timestamp: float
+    gps_coords: Tuple[float, float, float]  # lat, lon, alt
+    detected_objects: List[DetectedObject]
+
+@dataclass
+class ObjectLocation:
+    """Where an object was actually found"""
+    object_type: str
+    gps_location: Tuple[float, float]
+    frame_id: int
+    confidence: float
+
+@dataclass
+class PhotoSegmentRecommendation:
+    """Photo frequency recommendation for a flight segment"""
+    segment_start: Tuple[float, float]
+    segment_end: Tuple[float, float]
+    distance_meters: float
+    objects_found: int
+    unique_object_types: int
+    recommended_fps: float
+    reasoning: str
+
+@dataclass
+class CorridorSurveyPlan:
+    """Corridor survey pattern around original flight"""
+    corridor_width_meters: float
+    waypoints: List[FlightPoint]
+    coverage_area_sqm: float
+    flight_distance_meters: float
+
+@dataclass
+class DensityZone:
+    """Flight segment with object density information"""
+    start_point: FlightPoint
+    end_point: FlightPoint
+    segment_distance: float
+    objects_detected: int
+    unique_object_types: int
+    density_score: float
+    survey_intensity: str  # "high", "medium", "low"
+    recommended_passes: int
+    waypoint_spacing: float
+
+@dataclass
+class AdaptiveCorridorPlan:
+    """Enhanced corridor survey plan with density-based prioritization"""
+    corridor_width_meters: float
+    density_zones: List[DensityZone]
+    total_waypoints: int
+    high_density_waypoints: int
+    medium_density_waypoints: int
+    low_density_waypoints: int
+    coverage_efficiency: float
+    all_waypoints: List[FlightPoint]
+
+# =============================================================================
+# HEAT MAP DATA STRUCTURES
+# =============================================================================
+
+@dataclass
+class HeatMapCell:
+    """Individual cell in the heat map grid"""
+    center_lat: float
+    center_lon: float
+    object_count: int
+    unique_object_types: int
+    density_score: float
+    intensity_level: str  # "very_high", "high", "medium", "low", "none"
+    corner_coords: List[Tuple[float, float]]  # [NW, NE, SE, SW]
+
+@dataclass
+class HeatMapData:
+    """Complete heat map analysis"""
+    grid_size_meters: float
+    cells: List[HeatMapCell]
+    bounds: Dict[str, float]  # min_lat, max_lat, min_lon, max_lon
+    intensity_thresholds: Dict[str, float]
+    total_cells: int
+    active_cells: int  # cells with objects
+    max_density: float
+
+# =============================================================================
+# HEAT MAP GENERATOR
+# =============================================================================
+
+class InformationDensityHeatMapGenerator:
+    """Generate heat maps showing information density across the flight area"""
+    
+    def __init__(self, grid_size_meters: float = 20.0):
+        self.grid_size_meters = grid_size_meters
+        self.intensity_thresholds = {
+            "very_high": 8.0,
+            "high": 5.0,
+            "medium": 2.0,
+            "low": 0.5,
+            "none": 0.0
+        }
+        
+        # Colors for different intensity levels (KML format)
+        self.intensity_colors = {
+            "very_high": "ff0000ff",  # Red
+            "high": "ff0080ff",       # Orange
+            "medium": "ff00ffff",     # Yellow
+            "low": "ff80ff80",        # Light Green
+            "none": "80ffffff"        # Transparent White
+        }
+    
+    def generate_heat_map(self, frames: List[FlightFrame], 
+                         flight_plan: FlightPlan) -> HeatMapData:
+        """Generate heat map from flight frames and detected objects"""
+        
+        logger.info(f"🔥 Generating heat map with {self.grid_size_meters}m grid cells")
+        
+        # Calculate flight area bounds
+        bounds = self._calculate_flight_bounds(frames, flight_plan)
+        
+        # Create grid cells
+        grid_cells = self._create_grid_cells(bounds)
+        
+        # Populate cells with object data
+        populated_cells = self._populate_cells_with_objects(grid_cells, frames)
+        
+        # Calculate density scores and intensity levels
+        final_cells = self._calculate_cell_intensities(populated_cells)
+        
+        # Calculate statistics
+        active_cells = len([cell for cell in final_cells if cell.object_count > 0])
+        max_density = max([cell.density_score for cell in final_cells], default=0.0)
+        
+        heat_map = HeatMapData(
+            grid_size_meters=self.grid_size_meters,
+            cells=final_cells,
+            bounds=bounds,
+            intensity_thresholds=self.intensity_thresholds,
+            total_cells=len(final_cells),
+            active_cells=active_cells,
+            max_density=max_density
+        )
+        
+        logger.info(f"🔥 Heat map generated: {len(final_cells)} cells, {active_cells} active")
+        return heat_map
+    
+    def _calculate_flight_bounds(self, frames: List[FlightFrame], 
+                                flight_plan: FlightPlan) -> Dict[str, float]:
+        """Calculate bounding box for the flight area with padding"""
+        
+        # Get all coordinates
+        all_lats = []
+        all_lons = []
+        
+        # Add frame GPS coordinates
+        for frame in frames:
+            if frame.gps_coords[0] != 0 and frame.gps_coords[1] != 0:
+                all_lats.append(frame.gps_coords[0])
+                all_lons.append(frame.gps_coords[1])
+        
+        # Add flight plan waypoints
+        for point in flight_plan.points:
+            all_lats.append(point.lat)
+            all_lons.append(point.lon)
+        
+        if not all_lats or not all_lons:
+            # Fallback bounds
+            return {
+                "min_lat": 0.0, "max_lat": 0.001,
+                "min_lon": 0.0, "max_lon": 0.001
+            }
+        
+        # Calculate bounds with padding
+        padding_degrees = self.grid_size_meters * 2 / 111000  # Rough meters to degrees
+        
+        bounds = {
+            "min_lat": min(all_lats) - padding_degrees,
+            "max_lat": max(all_lats) + padding_degrees,
+            "min_lon": min(all_lons) - padding_degrees,
+            "max_lon": max(all_lons) + padding_degrees
+        }
+        
+        logger.info(f"📏 Flight bounds: {bounds['min_lat']:.6f} to {bounds['max_lat']:.6f} lat, "
+                   f"{bounds['min_lon']:.6f} to {bounds['max_lon']:.6f} lon")
+        
+        return bounds
+    
+    def _create_grid_cells(self, bounds: Dict[str, float]) -> List[HeatMapCell]:
+        """Create grid of cells covering the flight area"""
+        
+        # Calculate grid dimensions
+        lat_range = bounds["max_lat"] - bounds["min_lat"]
+        lon_range = bounds["max_lon"] - bounds["min_lon"]
+        
+        # Convert grid size to degrees (approximate)
+        lat_grid_size = self.grid_size_meters / 111000  # meters to degrees latitude
+        lon_grid_size = self.grid_size_meters / (111000 * math.cos(math.radians(
+            (bounds["min_lat"] + bounds["max_lat"]) / 2
+        )))  # adjust for longitude at this latitude
+        
+        # Calculate number of cells
+        num_lat_cells = max(1, int(lat_range / lat_grid_size) + 1)
+        num_lon_cells = max(1, int(lon_range / lon_grid_size) + 1)
+        
+        logger.info(f"📐 Creating {num_lat_cells} x {num_lon_cells} = {num_lat_cells * num_lon_cells} grid cells")
+        
+        cells = []
+        for lat_idx in range(num_lat_cells):
+            for lon_idx in range(num_lon_cells):
+                # Calculate cell center
+                center_lat = bounds["min_lat"] + (lat_idx + 0.5) * lat_grid_size
+                center_lon = bounds["min_lon"] + (lon_idx + 0.5) * lon_grid_size
+                
+                # Calculate cell corners
+                nw_lat = bounds["min_lat"] + lat_idx * lat_grid_size
+                se_lat = bounds["min_lat"] + (lat_idx + 1) * lat_grid_size
+                nw_lon = bounds["min_lon"] + lon_idx * lon_grid_size
+                se_lon = bounds["min_lon"] + (lon_idx + 1) * lon_grid_size
+                
+                corner_coords = [
+                    (nw_lat, nw_lon),  # NW
+                    (nw_lat, se_lon),  # NE
+                    (se_lat, se_lon),  # SE
+                    (se_lat, nw_lon)   # SW
+                ]
+                
+                cell = HeatMapCell(
+                    center_lat=center_lat,
+                    center_lon=center_lon,
+                    object_count=0,
+                    unique_object_types=0,
+                    density_score=0.0,
+                    intensity_level="none",
+                    corner_coords=corner_coords
+                )
+                
+                cells.append(cell)
+        
+        return cells
+    
+    def _populate_cells_with_objects(self, cells: List[HeatMapCell], 
+                                   frames: List[FlightFrame]) -> List[HeatMapCell]:
+        """Populate grid cells with object detection data"""
+        
+        for frame in frames:
+            if len(frame.detected_objects) == 0:
+                continue
+                
+            # Find which cell this frame belongs to
+            frame_lat, frame_lon = frame.gps_coords[0], frame.gps_coords[1]
+            
+            if frame_lat == 0 and frame_lon == 0:
+                continue  # Skip frames without GPS
+            
+            # Find the closest cell
+            closest_cell = None
+            min_distance = float('inf')
+            
+            for cell in cells:
+                distance = haversine_distance(
+                    frame_lat, frame_lon, 
+                    cell.center_lat, cell.center_lon
+                )
+                if distance < min_distance:
+                    min_distance = distance
+                    closest_cell = cell
+            
+            if closest_cell and min_distance <= self.grid_size_meters:
+                # Add objects to this cell
+                closest_cell.object_count += len(frame.detected_objects)
+                
+                # Count unique object types in this cell
+                cell_object_types = set()
+                for obj in frame.detected_objects:
+                    cell_object_types.add(obj.label)
+                
+                # Update unique object types (this is a simplified approach)
+                closest_cell.unique_object_types = max(
+                    closest_cell.unique_object_types, 
+                    len(cell_object_types)
+                )
+        
+        return cells
+    
+    def _calculate_cell_intensities(self, cells: List[HeatMapCell]) -> List[HeatMapCell]:
+        """Calculate density scores and intensity levels for each cell"""
+        
+        for cell in cells:
+            if cell.object_count == 0:
+                cell.density_score = 0.0
+                cell.intensity_level = "none"
+            else:
+                # Calculate density score based on objects and diversity
+                base_density = cell.object_count
+                diversity_bonus = cell.unique_object_types * 0.5
+                cell.density_score = base_density + diversity_bonus
+                
+                # Determine intensity level
+                if cell.density_score >= self.intensity_thresholds["very_high"]:
+                    cell.intensity_level = "very_high"
+                elif cell.density_score >= self.intensity_thresholds["high"]:
+                    cell.intensity_level = "high"
+                elif cell.density_score >= self.intensity_thresholds["medium"]:
+                    cell.intensity_level = "medium"
+                elif cell.density_score >= self.intensity_thresholds["low"]:
+                    cell.intensity_level = "low"
+                else:
+                    cell.intensity_level = "none"
+        
+        return cells
+    
+    def generate_heat_map_kml(self, heat_map: HeatMapData, output_path: str, 
+                            flight_plan: FlightPlan, original_filename: str):
+        """Generate comprehensive KML file with heat map overlay"""
+        
+        kml_content = f'''<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>Information Density Heat Map - {original_filename}</name>
+    <description>
+      Heat map showing object detection density across the flight area.
+      Grid size: {heat_map.grid_size_meters}m
+      Total cells: {heat_map.total_cells}
+      Active cells: {heat_map.active_cells}
+      Max density: {heat_map.max_density:.1f}
+    </description>
+    
+    <!-- Styles for different intensity levels -->
+    <Style id="veryHighIntensity">
+      <PolyStyle>
+        <color>{self.intensity_colors["very_high"]}</color>
+        <fill>1</fill>
+        <outline>1</outline>
+      </PolyStyle>
+      <LineStyle>
+        <color>ff000000</color>
+        <width>1</width>
+      </LineStyle>
+    </Style>
+    
+    <Style id="highIntensity">
+      <PolyStyle>
+        <color>{self.intensity_colors["high"]}</color>
+        <fill>1</fill>
+        <outline>1</outline>
+      </PolyStyle>
+      <LineStyle>
+        <color>ff000000</color>
+        <width>1</width>
+      </LineStyle>
+    </Style>
+    
+    <Style id="mediumIntensity">
+      <PolyStyle>
+        <color>{self.intensity_colors["medium"]}</color>
+        <fill>1</fill>
+        <outline>1</outline>
+      </PolyStyle>
+      <LineStyle>
+        <color>ff000000</color>
+        <width>1</width>
+      </LineStyle>
+    </Style>
+    
+    <Style id="lowIntensity">
+      <PolyStyle>
+        <color>{self.intensity_colors["low"]}</color>
+        <fill>1</fill>
+        <outline>1</outline>
+      </PolyStyle>
+      <LineStyle>
+        <color>ff000000</color>
+        <width>1</width>
+      </LineStyle>
+    </Style>
+    
+    <Style id="originalFlightPathStyle">
+      <LineStyle>
+        <color>ff0000ff</color>
+        <width>4</width>
+      </LineStyle>
+    </Style>
+    
+    <Style id="originalWaypointStyle">
+      <IconStyle>
+        <color>ff0000ff</color>
+        <scale>1.2</scale>
+        <Icon>
+          <href>http://maps.google.com/mapfiles/kml/paddle/blu-circle.png</href>
+        </Icon>
+      </IconStyle>
+    </Style>
+    
+    <!-- Original Flight Path -->
+    <Folder>
+      <name>Original Flight Path</name>
+      <Placemark>
+        <name>Flight Route</name>
+        <description>Original drone flight path</description>
+        <styleUrl>#originalFlightPathStyle</styleUrl>
+        <LineString>
+          <coordinates>
+'''
+        
+        # Add original flight path coordinates
+        for point in flight_plan.points:
+            kml_content += f"            {point.lon},{point.lat},{point.alt or 100}\n"
+        
+        kml_content += '''          </coordinates>
+        </LineString>
+      </Placemark>
+'''
+        
+        # Add original waypoints
+        for i, point in enumerate(flight_plan.points):
+            kml_content += f'''      <Placemark>
+        <name>Waypoint {i+1}</name>
+        <description>Original waypoint: {point.lat:.6f}, {point.lon:.6f}</description>
+        <styleUrl>#originalWaypointStyle</styleUrl>
+        <Point>
+          <coordinates>{point.lon},{point.lat},{point.alt or 100}</coordinates>
+        </Point>
+      </Placemark>
+'''
+        
+        kml_content += '''    </Folder>
+    
+    <!-- Heat Map Grid -->
+    <Folder>
+      <name>Information Density Heat Map</name>
+      <description>Grid cells colored by object detection density</description>
+'''
+        
+        # Add heat map cells
+        cell_id = 0
+        for cell in heat_map.cells:
+            if cell.intensity_level == "none":
+                continue  # Skip empty cells for cleaner visualization
+                
+            cell_id += 1
+            style_id = f"{cell.intensity_level}Intensity"
+            
+            kml_content += f'''      <Placemark>
+        <name>Cell {cell_id} ({cell.intensity_level.replace('_', ' ').title()})</name>
+        <description>
+          Objects Detected: {cell.object_count}
+          Unique Object Types: {cell.unique_object_types}
+          Density Score: {cell.density_score:.1f}
+          Intensity: {cell.intensity_level.replace('_', ' ').title()}
+          Grid Size: {heat_map.grid_size_meters}m
+        </description>
+        <styleUrl>#{style_id}</styleUrl>
+        <Polygon>
+          <outerBoundaryIs>
+            <LinearRing>
+              <coordinates>
+'''
+            
+            # Add cell corner coordinates
+            for corner in cell.corner_coords:
+                lat, lon = corner
+                kml_content += f"                {lon},{lat},0\n"
+            
+            # Close the polygon
+            first_corner = cell.corner_coords[0]
+            kml_content += f"                {first_corner[1]},{first_corner[0]},0\n"
+            
+            kml_content += '''              </coordinates>
+            </LinearRing>
+          </outerBoundaryIs>
+        </Polygon>
+      </Placemark>
+'''
+        
+        kml_content += '''    </Folder>
+    
+    <!-- Legend -->
+    <Folder>
+      <name>Legend</name>
+      <description>Heat map intensity legend</description>
+'''
+        
+        # Add legend information
+        legend_info = [
+            ("Very High Density", "very_high", f"≥ {heat_map.intensity_thresholds['very_high']} objects"),
+            ("High Density", "high", f"≥ {heat_map.intensity_thresholds['high']} objects"),
+            ("Medium Density", "medium", f"≥ {heat_map.intensity_thresholds['medium']} objects"),
+            ("Low Density", "low", f"≥ {heat_map.intensity_thresholds['low']} objects")
+        ]
+        
+        for name, level, threshold in legend_info:
+            count = len([cell for cell in heat_map.cells if cell.intensity_level == level])
+            if count > 0:
+                kml_content += f'''      <Placemark>
+        <name>{name} ({count} cells)</name>
+        <description>{threshold}</description>
+        <Point>
+          <coordinates>0,0,0</coordinates>
+        </Point>
+      </Placemark>
+'''
+        
+        kml_content += '''    </Folder>
+  </Document>
+</kml>'''
+        
+        # Write KML file
+        with open(output_path, 'w') as f:
+            f.write(kml_content)
+        
+    def generate_heat_map_png(self, heat_map: HeatMapData, output_path: str, 
+                            flight_plan: FlightPlan, original_filename: str):
+        """Generate simple heat map - no external dependencies needed"""
+        
+        # Create simple plot
+        fig, ax = plt.subplots(figsize=(12, 10), dpi=300)
+        
+        # Set bounds with padding
+        west = heat_map.bounds['min_lon'] - 0.001
+        east = heat_map.bounds['max_lon'] + 0.001
+        south = heat_map.bounds['min_lat'] - 0.001
+        north = heat_map.bounds['max_lat'] + 0.001
+        
+        ax.set_xlim(west, east)
+        ax.set_ylim(south, north)
+        
+        # Simple light background
+        ax.set_facecolor('#f0f0f0')  # Light gray background
+        
+        # Simple color scheme
+        colors = {
+            'very_high': '#FF0000',  # Red
+            'high': '#FF8000',       # Orange 
+            'medium': '#FFFF00',     # Yellow
+            'low': '#80FF80'         # Light green
+        }
+        
+        alphas = {
+            'very_high': 0.8,
+            'high': 0.7,
+            'medium': 0.6,
+            'low': 0.5
+        }
+        
+        # Draw heat map rectangles
+        rectangles_drawn = 0
+        for cell in heat_map.cells:
+            if cell.intensity_level == 'none':
+                continue
+                
+            # Get rectangle corners  
+            corners = cell.corner_coords
+            min_lat = min(corner[0] for corner in corners)
+            max_lat = max(corner[0] for corner in corners)
+            min_lon = min(corner[1] for corner in corners)
+            max_lon = max(corner[1] for corner in corners)
+            
+            # Create rectangle
+            width = max_lon - min_lon
+            height = max_lat - min_lat
+            
+            rect = patches.Rectangle(
+                (min_lon, min_lat), width, height,
+                facecolor=colors[cell.intensity_level],
+                alpha=alphas[cell.intensity_level],
+                edgecolor='black',
+                linewidth=0.5
+            )
+            ax.add_patch(rect)
+            rectangles_drawn += 1
+            
+            # Add density score in center of cell
+            center_lon = min_lon + width/2
+            center_lat = min_lat + height/2
+            if cell.density_score > 0:
+                ax.text(center_lon, center_lat, f'{cell.density_score:.1f}',
+                       ha='center', va='center', fontsize=8, fontweight='bold',
+                       bbox=dict(boxstyle='round,pad=0.2', facecolor='white', alpha=0.8))
+        
+        # Simple legend
+        legend_elements = []
+        for level in ['very_high', 'high', 'medium', 'low']:
+            count = len([cell for cell in heat_map.cells if cell.intensity_level == level])
+            if count > 0:
+                threshold = heat_map.intensity_thresholds[level]
+                legend_elements.append(
+                    patches.Rectangle((0, 0), 1, 1, 
+                                    facecolor=colors[level], 
+                                    alpha=alphas[level],
+                                    label=f'{level.replace("_", " ").title()} (≥{threshold:.1f}) - {count} cells')
+                )
+        
+        if legend_elements:
+            ax.legend(handles=legend_elements, loc='upper left', fontsize=10, framealpha=0.9)
+        
+        # Simple title
+        active_percent = (heat_map.active_cells / heat_map.total_cells) * 100 if heat_map.total_cells > 0 else 0
+        plt.title(f'Information Density Heat Map\n'
+                 f'Grid: {heat_map.grid_size_meters}m | Active: {heat_map.active_cells}/{heat_map.total_cells} cells '
+                 f'({active_percent:.1f}%) | Max Density: {heat_map.max_density:.1f}',
+                 fontsize=14, fontweight='bold')
+        
+        # Coordinate labels and grid
+        ax.set_xlabel('Longitude', fontsize=12)
+        ax.set_ylabel('Latitude', fontsize=12)
+        ax.grid(True, alpha=0.3, linestyle=':', linewidth=0.5)
+        ax.ticklabel_format(useOffset=False, style='plain')
+        
+        plt.tight_layout()
+        plt.savefig(output_path, dpi=300, bbox_inches='tight', facecolor='white')
+        plt.close()
+        
+        logger.info(f"🗺️ Heat map PNG saved: {output_path} ({rectangles_drawn} rectangles)")
+    
+    def generate_corridor_survey_png(self, adaptive_plan: AdaptiveCorridorPlan, 
+                                   heat_map: HeatMapData, output_path: str,
+                                   flight_plan: FlightPlan, original_filename: str):
+        """Generate simple corridor survey with connected waypoints and visible heat map"""
+        
+        # Create plot
+        fig, ax = plt.subplots(figsize=(12, 10), dpi=300)
+        
+        # Set bounds
+        west = heat_map.bounds['min_lon'] - 0.001
+        east = heat_map.bounds['max_lon'] + 0.001
+        south = heat_map.bounds['min_lat'] - 0.001
+        north = heat_map.bounds['max_lat'] + 0.001
+        
+        ax.set_xlim(west, east)
+        ax.set_ylim(south, north)
+        
+        # Simple background
+        ax.set_facecolor('#f5f5f5')  # Slightly darker background
+        
+        # Draw MORE VISIBLE heat map background
+        for cell in heat_map.cells:
+            if cell.intensity_level == 'none':
+                continue
+                
+            corners = cell.corner_coords
+            min_lat = min(corner[0] for corner in corners)
+            max_lat = max(corner[0] for corner in corners)
+            min_lon = min(corner[1] for corner in corners)
+            max_lon = max(corner[1] for corner in corners)
+            
+            width = max_lon - min_lon
+            height = max_lat - min_lat
+            
+            color_map = {
+                'very_high': '#FF0000',
+                'high': '#FF8000', 
+                'medium': '#FFFF00',
+                'low': '#80FF80'
+            }
+            
+            rect = patches.Rectangle(
+                (min_lon, min_lat), width, height,
+                facecolor=color_map[cell.intensity_level],
+                alpha=0.4,  # More visible background
+                edgecolor='black',
+                linewidth=0.5
+            )
+            ax.add_patch(rect)
+        
+        # Group waypoints by priority for connected flight paths
+        high_wp, medium_wp, low_wp = [], [], []
+        
+        for waypoint in adaptive_plan.all_waypoints:
+            if 'high' in waypoint.name.lower():
+                high_wp.append(waypoint)
+            elif 'medium' in waypoint.name.lower():
+                medium_wp.append(waypoint)
+            else:
+                low_wp.append(waypoint)
+        
+        # Sort waypoints by name to get proper connection order
+        high_wp.sort(key=lambda w: w.name)
+        medium_wp.sort(key=lambda w: w.name)
+        low_wp.sort(key=lambda w: w.name)
+        
+        # Draw CONNECTED flight paths
+        def draw_connected_path(waypoints, color, label_prefix, alpha=0.8):
+            if len(waypoints) < 2:
+                return
+                
+            # Draw lines connecting waypoints in sequence
+            lons = [wp.lon for wp in waypoints]
+            lats = [wp.lat for wp in waypoints]
+            
+            ax.plot(lons, lats, 
+                   color=color, 
+                   alpha=alpha, 
+                   linewidth=3, 
+                   linestyle='-',
+                   zorder=5)
+        
+        # Draw connected paths for each priority level
+        if high_wp:
+            draw_connected_path(high_wp, '#FF0000', 'High', 0.8)
+        if medium_wp:
+            draw_connected_path(medium_wp, '#FF8000', 'Medium', 0.7)
+        if low_wp:
+            draw_connected_path(low_wp, '#00AA00', 'Low', 0.6)
+        
+        # Draw waypoint markers on top of lines
+        waypoint_colors = {'high': '#FF0000', 'medium': '#FF8000', 'low': '#00AA00'}
+        waypoint_sizes = {'high': 100, 'medium': 80, 'low': 60}
+        
+        for waypoint in adaptive_plan.all_waypoints:
+            # Determine priority
+            if 'high' in waypoint.name.lower():
+                priority = 'high'
+            elif 'medium' in waypoint.name.lower():
+                priority = 'medium'
+            else:
+                priority = 'low'
+            
+            ax.scatter(waypoint.lon, waypoint.lat,
+                      c=waypoint_colors[priority],
+                      s=waypoint_sizes[priority],
+                      marker='*',
+                      edgecolor='white',
+                      linewidth=2,
+                      zorder=10)
+        
+        # Enhanced legend
+        legend_elements = [
+            plt.Line2D([0], [0], marker='*', color='#FF0000', markersize=12, 
+                      linestyle='-', linewidth=3, alpha=0.8,
+                      label=f'High Priority Route ({adaptive_plan.high_density_waypoints} waypoints)'),
+            plt.Line2D([0], [0], marker='*', color='#FF8000', markersize=10, 
+                      linestyle='-', linewidth=3, alpha=0.7,
+                      label=f'Medium Priority Route ({adaptive_plan.medium_density_waypoints} waypoints)'),
+            plt.Line2D([0], [0], marker='*', color='#00AA00', markersize=8, 
+                      linestyle='-', linewidth=3, alpha=0.6,
+                      label=f'Low Priority Route ({adaptive_plan.low_density_waypoints} waypoints)'),
+            patches.Rectangle((0, 0), 1, 1, facecolor='gray', alpha=0.4, 
+                            label='Information Density (background)')
+        ]
+        
+        ax.legend(handles=legend_elements, loc='upper left', fontsize=10, framealpha=0.9)
+        
+        plt.title(f'Adaptive Corridor Survey\n'
+                 f'Total: {adaptive_plan.total_waypoints} waypoints | '
+                 f'Efficiency: {adaptive_plan.coverage_efficiency:.1f}%',
+                 fontsize=14, fontweight='bold')
+        
+        ax.set_xlabel('Longitude', fontsize=12)
+        ax.set_ylabel('Latitude', fontsize=12)
+        ax.grid(True, alpha=0.3, linestyle=':', linewidth=0.5)
+        ax.ticklabel_format(useOffset=False, style='plain')
+        
+        plt.tight_layout()
+        plt.savefig(output_path, dpi=300, bbox_inches='tight', facecolor='white')
+        plt.close()
+        
+    def generate_corridor_survey_with_qgis_background(self, adaptive_plan: AdaptiveCorridorPlan, 
+                                                     heat_map: HeatMapData, output_path: str,
+                                                     flight_plan: FlightPlan, original_filename: str):
+        """Generate corridor survey by drawing directly on OpenStreetMap PNG - ZOOMED IN VERSION"""
+        
+        try:
+            from qgis.core import (
+                QgsApplication, QgsProject, QgsRasterLayer,
+                QgsRectangle, QgsCoordinateReferenceSystem,
+                QgsMapSettings, QgsMapRendererCustomPainterJob
+            )
+            from qgis.PyQt.QtCore import QSize
+            from qgis.PyQt.QtGui import QColor, QPainter, QImage, QPen, QBrush, QFont
+            from qgis.PyQt.QtCore import Qt
+            
+            logger.info("🗺️ Generating ZOOMED map with OpenStreetMap background + overlays...")
+            
+            # Initialize QGIS
+            QgsApplication.setPrefixPath("C:/OSGeo4W/apps/qgis", True)
+            qgs = QgsApplication([], False)
+            qgs.initQgis()
+            
+            # Create project with just OpenStreetMap background
+            project = QgsProject.instance()
+            project.clear()
+            
+            # Calculate TIGHTER map extent for better zoom
+            base_padding = 0.0005  # Much smaller padding for closer zoom
+            west = heat_map.bounds['min_lon'] - base_padding
+            east = heat_map.bounds['max_lon'] + base_padding
+            south = heat_map.bounds['min_lat'] - base_padding
+            north = heat_map.bounds['max_lat'] + base_padding
+            
+            logger.info(f"📏 ZOOMED bounds: {west:.6f}, {south:.6f} to {east:.6f}, {north:.6f}")
+            
+            # Add OpenStreetMap background
+            osm_url = "type=xyz&url=https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+            osm_layer = QgsRasterLayer(osm_url, "OpenStreetMap", "wms")
+            if osm_layer.isValid():
+                project.addMapLayer(osm_layer)
+                logger.info("✅ OpenStreetMap background added")
+            else:
+                logger.warning("❌ Failed to add OpenStreetMap background")
+                raise Exception("No background map available")
+            
+            # Setup map settings for rendering JUST THE BACKGROUND
+            settings = QgsMapSettings()
+            settings.setExtent(QgsRectangle(west, south, east, north))
+            settings.setOutputSize(QSize(1800, 1400))  # Even larger for more detail
+            settings.setOutputDpi(300)
+            settings.setDestinationCrs(QgsCoordinateReferenceSystem("EPSG:4326"))
+            settings.setLayers([osm_layer])
+            
+            # Render JUST the background map
+            image = QImage(QSize(1800, 1400), QImage.Format_ARGB32_Premultiplied)
+            image.fill(Qt.white)
+            
+            painter = QPainter(image)
+            render = QgsMapRendererCustomPainterJob(settings, painter)
+            render.start()
+            render.waitForFinished()
+            painter.end()
+            
+            logger.info("✅ Background map rendered, now drawing overlays...")
+            
+            # NOW DRAW DIRECTLY ON THE IMAGE
+            painter = QPainter(image)
+            painter.setRenderHint(QPainter.Antialiasing)  # Smooth lines
+            
+            # Helper function to convert lat/lon to pixel coordinates
+            def lat_lon_to_pixel(lat, lon):
+                x_ratio = (lon - west) / (east - west)
+                y_ratio = (north - lat) / (north - south)  # Flip Y axis
+                
+                pixel_x = int(x_ratio * 1800)
+                pixel_y = int(y_ratio * 1400)
+                
+                return pixel_x, pixel_y
+            
+            # Draw MORE TRANSPARENT heat map rectangles
+            logger.info(f"🔥 Drawing {len([c for c in heat_map.cells if c.intensity_level != 'none'])} heat map rectangles...")
+            
+            for cell in heat_map.cells:
+                if cell.intensity_level == 'none':
+                    continue
+                
+                # Get rectangle corners in pixels
+                corners = cell.corner_coords
+                min_lat = min(corner[0] for corner in corners)
+                max_lat = max(corner[0] for corner in corners)
+                min_lon = min(corner[1] for corner in corners)
+                max_lon = max(corner[1] for corner in corners)
+                
+                # Convert to pixel coordinates
+                x1, y1 = lat_lon_to_pixel(max_lat, min_lon)  # Top-left
+                x2, y2 = lat_lon_to_pixel(min_lat, max_lon)  # Bottom-right
+                
+                # Draw MORE TRANSPARENT filled rectangle
+                pen = QPen(QColor(255, 0, 0), 3)  # Red border, thicker
+                brush = QBrush(QColor(255, 0, 0, 100))  # More transparent red fill (was 180, now 100)
+                
+                painter.setPen(pen)
+                painter.setBrush(brush)
+                painter.drawRect(x1, y1, x2-x1, y2-y1)
+                
+                # Draw density score text with better visibility
+                center_x = (x1 + x2) // 2
+                center_y = (y1 + y2) // 2
+                
+                # White text with black outline for visibility
+                font = QFont("Arial", 14, QFont.Bold)  # Larger, bold font
+                painter.setFont(font)
+                
+                # Draw black outline first
+                painter.setPen(QPen(QColor(0, 0, 0), 3))
+                painter.drawText(center_x-25, center_y+5, f"{cell.density_score:.0f}")
+                
+                # Draw white text on top
+                painter.setPen(QPen(QColor(255, 255, 255), 1))
+                painter.drawText(center_x-25, center_y+5, f"{cell.density_score:.0f}")
+            
+            # Draw THICKER, MORE VISIBLE flight path lines
+            logger.info(f"🛤️ Drawing flight path with {len(adaptive_plan.all_waypoints)} waypoints...")
+            
+            if len(adaptive_plan.all_waypoints) > 1:
+                # Sort waypoints by name for proper order
+                sorted_waypoints = sorted(adaptive_plan.all_waypoints, key=lambda w: w.name)
+                
+                # Draw VERY THICK blue line with white outline
+                # First draw white outline
+                pen = QPen(QColor(255, 255, 255), 10)  # Thick white outline
+                painter.setPen(pen)
+                
+                for i in range(len(sorted_waypoints) - 1):
+                    wp1 = sorted_waypoints[i]
+                    wp2 = sorted_waypoints[i + 1]
+                    
+                    x1, y1 = lat_lon_to_pixel(wp1.lat, wp1.lon)
+                    x2, y2 = lat_lon_to_pixel(wp2.lat, wp2.lon)
+                    
+                    painter.drawLine(x1, y1, x2, y2)
+                
+                # Then draw blue line on top
+                pen = QPen(QColor(0, 100, 255), 6)  # Bright blue line, thick
+                painter.setPen(pen)
+                
+                for i in range(len(sorted_waypoints) - 1):
+                    wp1 = sorted_waypoints[i]
+                    wp2 = sorted_waypoints[i + 1]
+                    
+                    x1, y1 = lat_lon_to_pixel(wp1.lat, wp1.lon)
+                    x2, y2 = lat_lon_to_pixel(wp2.lat, wp2.lon)
+                    
+                    painter.drawLine(x1, y1, x2, y2)
+            
+            # Draw NUMBERED waypoint markers instead of dots
+            logger.info(f"📍 Drawing {len(adaptive_plan.all_waypoints)} NUMBERED waypoint markers...")
+            
+            # Sort waypoints by name to get proper sequence
+            sorted_waypoints = sorted(adaptive_plan.all_waypoints, key=lambda w: w.name)
+            
+            for i, waypoint in enumerate(sorted_waypoints):
+                x, y = lat_lon_to_pixel(waypoint.lat, waypoint.lon)
+                
+                # Draw larger circle with white outline for waypoint number
+                pen = QPen(QColor(255, 255, 255), 4)  # Thick white border
+                brush = QBrush(QColor(0, 100, 255))    # Blue fill to match flight line
+                
+                painter.setPen(pen)
+                painter.setBrush(brush)
+                
+                # Draw larger circle for number visibility
+                circle_size = 32  # Bigger circles for numbers
+                painter.drawEllipse(x-circle_size//2, y-circle_size//2, circle_size, circle_size)
+                
+                # Draw waypoint number in the circle
+                font = QFont("Arial", 12, QFont.Bold)  # Bold font for visibility
+                painter.setFont(font)
+                
+                # White text for contrast against blue background
+                painter.setPen(QPen(QColor(255, 255, 255), 2))
+                
+                # Center the number in the circle
+                waypoint_num = str(i + 1)
+                if len(waypoint_num) == 1:
+                    text_x = x - 6  # Single digit centering
+                else:
+                    text_x = x - 10  # Double digit centering
+                
+                painter.drawText(text_x, y + 4, waypoint_num)
+            
+            # Add START and END labels for extra clarity
+            if len(sorted_waypoints) >= 2:
+                # START label
+                start_wp = sorted_waypoints[0]
+                start_x, start_y = lat_lon_to_pixel(start_wp.lat, start_wp.lon)
+                
+                font = QFont("Arial", 14, QFont.Bold)
+                painter.setFont(font)
+                
+                # Green background for START
+                painter.setPen(QPen(QColor(255, 255, 255), 3))
+                painter.setBrush(QBrush(QColor(0, 150, 0)))
+                painter.drawRect(start_x - 30, start_y - 45, 60, 20)
+                
+                painter.setPen(QPen(QColor(255, 255, 255), 2))
+                painter.drawText(start_x - 25, start_y - 30, "START")
+                
+                # END label
+                end_wp = sorted_waypoints[-1]
+                end_x, end_y = lat_lon_to_pixel(end_wp.lat, end_wp.lon)
+                
+                # Red background for END
+                painter.setPen(QPen(QColor(255, 255, 255), 3))
+                painter.setBrush(QBrush(QColor(150, 0, 0)))
+                painter.drawRect(end_x - 25, end_y + 25, 50, 20)
+                
+                painter.setPen(QPen(QColor(255, 255, 255), 2))
+                painter.drawText(end_x - 20, end_y + 40, "END")
+            
+            painter.end()
+            
+            # Save the final image
+            success = image.save(output_path)
+            
+            # Cleanup
+            qgs.exitQgis()
+            
+            if success:
+                logger.info(f"✅ ZOOMED map with overlays saved: {output_path}")
+            else:
+                logger.error(f"❌ Failed to save final map")
+                raise Exception("Image save failed")
+            
+        except ImportError as e:
+            logger.warning(f"⚠️ QGIS not available: {e}")
+            self.generate_corridor_survey_png(adaptive_plan, heat_map, output_path, flight_plan, original_filename)
+        except Exception as e:
+            logger.error(f"❌ QGIS rendering failed: {e}")
+            self.generate_corridor_survey_png(adaptive_plan, heat_map, output_path, flight_plan, original_filename)
+
+# =============================================================================
+# DENSITY ADAPTIVE CORRIDOR GENERATOR (YOUR EXISTING CODE)
+# =============================================================================
+
+class DensityAdaptiveCorridorGenerator:
+    """Generate corridor surveys that focus on information-rich areas"""
+    
+    def __init__(self):
+        self.high_density_threshold = 3.0
+        self.medium_density_threshold = 1.0
+        
+        self.survey_patterns = {
+            "high": {"passes": 3, "waypoint_spacing": 5.0, "corridor_multiplier": 1.5},
+            "medium": {"passes": 2, "waypoint_spacing": 8.0, "corridor_multiplier": 1.2},
+            "low": {"passes": 1, "waypoint_spacing": 15.0, "corridor_multiplier": 1.0}
+        }
+    
+    def generate_adaptive_corridor_survey(self, original_plan: FlightPlan, 
+                                        frames: List[FlightFrame],
+                                        corridor_width_meters: float = 10.0) -> AdaptiveCorridorPlan:
+        """Generate density-adaptive corridor survey"""
+        
+        density_zones = self._analyze_density_zones(original_plan, frames)
+        
+        for zone in density_zones:
+            zone.density_score = self._calculate_density_score(zone)
+            zone.survey_intensity = self._determine_survey_intensity(zone.density_score)
+            pattern = self.survey_patterns[zone.survey_intensity]
+            zone.recommended_passes = pattern["passes"]
+            zone.waypoint_spacing = pattern["waypoint_spacing"]
+        
+        all_waypoints = []
+        intensity_counts = {"high": 0, "medium": 0, "low": 0}
+        
+        for zone in density_zones:
+            zone_waypoints = self._generate_zone_waypoints(zone, corridor_width_meters)
+            all_waypoints.extend(zone_waypoints)
+            intensity_counts[zone.survey_intensity] += len(zone_waypoints)
+        
+        coverage_efficiency = self._calculate_coverage_efficiency(density_zones)
+        
+        return AdaptiveCorridorPlan(
+            corridor_width_meters=corridor_width_meters,
+            density_zones=density_zones,
+            total_waypoints=len(all_waypoints),
+            high_density_waypoints=intensity_counts["high"],
+            medium_density_waypoints=intensity_counts["medium"],
+            low_density_waypoints=intensity_counts["low"],
+            coverage_efficiency=coverage_efficiency,
+            all_waypoints=all_waypoints
+        )
+    
+    def _analyze_density_zones(self, flight_plan: FlightPlan, frames: List[FlightFrame]) -> List[DensityZone]:
+        if len(flight_plan.points) < 2:
+            return []
+        
+        zones = []
+        for i in range(len(flight_plan.points) - 1):
+            start_point = flight_plan.points[i]
+            end_point = flight_plan.points[i + 1]
+            
+            segment_distance = haversine_distance(
+                start_point.lat, start_point.lon, end_point.lat, end_point.lon
+            )
+            
+            segment_frames = self._get_frames_in_segment(frames, start_point, end_point)
+            total_objects = sum(len(frame.detected_objects) for frame in segment_frames)
+            unique_objects = len(set(
+                obj.label for frame in segment_frames for obj in frame.detected_objects
+            ))
+            
+            zone = DensityZone(
+                start_point=start_point, end_point=end_point, segment_distance=segment_distance,
+                objects_detected=total_objects, unique_object_types=unique_objects,
+                density_score=0.0, survey_intensity="low", recommended_passes=1, waypoint_spacing=15.0
+            )
+            zones.append(zone)
+        return zones
+    
+    def _get_frames_in_segment(self, frames: List[FlightFrame], start_point: FlightPoint, end_point: FlightPoint) -> List[FlightFrame]:
+        segment_frames = []
+        for frame in frames:
+            dist_to_start = haversine_distance(start_point.lat, start_point.lon, frame.gps_coords[0], frame.gps_coords[1])
+            dist_to_end = haversine_distance(end_point.lat, end_point.lon, frame.gps_coords[0], frame.gps_coords[1])
+            segment_distance = haversine_distance(start_point.lat, start_point.lon, end_point.lat, end_point.lon)
+            
+            if (dist_to_start + dist_to_end) <= (segment_distance + 50):
+                segment_frames.append(frame)
+        return segment_frames
+    
+    def _calculate_density_score(self, zone: DensityZone) -> float:
+        if zone.segment_distance <= 0:
+            return 0.0
+        base_density = (zone.objects_detected / zone.segment_distance) * 10
+        diversity_bonus = min(zone.unique_object_types * 0.5, 2.0)
+        return base_density + diversity_bonus
+    
+    def _determine_survey_intensity(self, density_score: float) -> str:
+        if density_score >= self.high_density_threshold:
+            return "high"
+        elif density_score >= self.medium_density_threshold:
+            return "medium"
+        else:
+            return "low"
+    
+    def _generate_zone_waypoints(self, zone: DensityZone, base_corridor_width: float) -> List[FlightPoint]:
+        pattern = self.survey_patterns[zone.survey_intensity]
+        effective_corridor_width = base_corridor_width * pattern["corridor_multiplier"]
+        bearing = self._calculate_bearing(zone.start_point, zone.end_point)
+        
+        waypoints = []
+        waypoint_id_base = f"{zone.survey_intensity}_{hash(str(zone.start_point.lat))%1000}"
+        
+        for pass_num in range(pattern["passes"]):
+            if pattern["passes"] == 1:
+                side_offset = 0
+            elif pass_num == 0:
+                side_offset = -effective_corridor_width / 3
+            else:
+                side_offset = effective_corridor_width / 3
+            
+            num_waypoints = max(2, int(zone.segment_distance / pattern["waypoint_spacing"]) + 1)
+            for i in range(num_waypoints):
+                progress = i / (num_waypoints - 1) if num_waypoints > 1 else 0.0
+                lat = zone.start_point.lat + (zone.end_point.lat - zone.start_point.lat) * progress
+                lon = zone.start_point.lon + (zone.end_point.lon - zone.start_point.lon) * progress
+                alt = zone.start_point.alt or 100
+                
+                if side_offset != 0:
+                    lat, lon = self._apply_perpendicular_offset(lat, lon, bearing, side_offset)
+                
+                waypoint = FlightPoint(lat=lat, lon=lon, alt=alt, name=f"{waypoint_id_base}_p{pass_num}_{i:02d}")
+                waypoints.append(waypoint)
+        
+        return waypoints
+    
+    def _apply_perpendicular_offset(self, lat: float, lon: float, bearing: float, offset_meters: float) -> Tuple[float, float]:
+        perp_bearing = (bearing + 90) % 360 if offset_meters > 0 else (bearing - 90) % 360
+        lat_offset, lon_offset = meters_to_degrees(abs(offset_meters), lat)
+        bearing_rad = math.radians(perp_bearing)
+        lat_delta = lat_offset * math.cos(bearing_rad)
+        lon_delta = lon_offset * math.sin(bearing_rad)
+        return (lat + lat_delta, lon + lon_delta)
+    
+    def _calculate_bearing(self, point1: FlightPoint, point2: FlightPoint) -> float:
+        lat1, lon1 = math.radians(point1.lat), math.radians(point1.lon)
+        lat2, lon2 = math.radians(point2.lat), math.radians(point2.lon)
+        dlon = lon2 - lon1
+        y = math.sin(dlon) * math.cos(lat2)
+        x = math.cos(lat1) * math.sin(lat2) - math.sin(lat1) * math.cos(lat2) * math.cos(dlon)
+        bearing = math.atan2(y, x)
+        return (math.degrees(bearing) + 360) % 360
+    
+    def _calculate_coverage_efficiency(self, zones: List[DensityZone]) -> float:
+        if not zones:
+            return 0.0
+        total_weighted_coverage = sum(zone.recommended_passes * max(zone.density_score, 0.1) for zone in zones)
+        total_possible_coverage = sum(3 * max(zone.density_score, 0.1) for zone in zones)
+        return min((total_weighted_coverage / total_possible_coverage) * 100, 100.0)
+
+# =============================================================================
+# SIMPLE QUERY PARSER (YOUR EXISTING CODE)
+# =============================================================================
+
+class SimpleQueryParser:
+    """Parse user queries to understand what they're asking"""
+    
+    def parse_query(self, user_input: str) -> Tuple[QueryType, Dict[str, Any]]:
+        """Parse user query and extract parameters"""
+        user_input_lower = user_input.lower()
+        
+        # Extract corridor width if mentioned
+        corridor_width = None
+        use_adaptive = True  # Default to adaptive since it's better
+        
+        if "around" in user_input_lower or "corridor" in user_input_lower:
+            import re
+            width_match = re.search(r'(\d+)\s*(?:meter|m\b|feet)', user_input_lower)
+            if width_match:
+                corridor_width = float(width_match.group(1))
+                if "feet" in user_input_lower:
+                    corridor_width = corridor_width * 0.3048
+            
+            return QueryType.CORRIDOR_SURVEY, {
+                "corridor_width_meters": corridor_width or 10.0,
+                "use_adaptive": use_adaptive
+            }
+        
+        # Rest of your existing photo/object/flight logic stays the same...
+        if any(word in user_input_lower for word in ["photo", "fps", "frame", "second", "picture"]):
+            return QueryType.PHOTO_OPTIMIZATION, {}
+        
+        if any(word in user_input_lower for word in ["find", "where", "locate", "most"]):
+            target_objects = []
+            object_keywords = ["person", "people", "vehicle", "car", "truck", "cone", "bench", "furniture"]
+            for keyword in object_keywords:
+                if keyword in user_input_lower:
+                    target_objects.append(keyword)
+            return QueryType.OBJECT_LOCATION, {"target_objects": target_objects}
+        
+        return QueryType.FLIGHT_OPTIMIZATION, {}
+
+# =============================================================================
+# FLIGHT DATA PROCESSOR (YOUR EXISTING CODE)
+# =============================================================================
+
+class FlightDataProcessor:
+    """Process single flight JSON data and map to GPS coordinates"""
+    
+    def load_flight_data(self, json_file_path: str, flight_plan: FlightPlan) -> List[FlightFrame]:
+        """Load detection results and map to GPS coordinates along flight path"""
+        
+        # Load JSON data
+        with open(json_file_path, 'r') as f:
+            data = json.load(f)
+        
+        logger.info(f"📄 Loaded {len(data)} frames from JSON")
+        
+        # Convert to FlightFrame objects
+        frames = []
+        for frame_dict in data:
+            detected_objects = []
+            for obj_dict in frame_dict.get('detected_objects', []):
+                detected_obj = DetectedObject(
+                    label=obj_dict['label'],
+                    confidence=obj_dict['confidence'],
+                    bbox=obj_dict['bbox'],
+                    area=obj_dict['area']
+                )
+                detected_objects.append(detected_obj)
+            
+            frame = FlightFrame(
+                frame_id=frame_dict['frame_id'],
+                timestamp=frame_dict['timestamp'],
+                gps_coords=(0.0, 0.0, 0.0),  # Will be calculated
+                detected_objects=detected_objects
+            )
+            frames.append(frame)
+        
+        # Map frames to GPS coordinates along flight path
+        self._map_frames_to_flight_path(frames, flight_plan)
+        
+        logger.info(f"📍 Mapped {len(frames)} frames to GPS coordinates")
+        return frames
+    
+    def _map_frames_to_flight_path(self, frames: List[FlightFrame], flight_plan: FlightPlan):
+        """Map frame sequence to GPS coordinates along the flight path"""
+        if not frames or len(flight_plan.points) < 2:
+            return
+        
+        total_frames = len(frames)
+        
+        # Calculate cumulative distances along flight path
+        cumulative_distances = [0.0]
+        for i in range(1, len(flight_plan.points)):
+            prev_point = flight_plan.points[i-1]
+            curr_point = flight_plan.points[i]
+            segment_distance = haversine_distance(
+                prev_point.lat, prev_point.lon,
+                curr_point.lat, curr_point.lon
+            )
+            cumulative_distances.append(cumulative_distances[-1] + segment_distance)
+        
+        total_distance = cumulative_distances[-1]
+        
+        # Map each frame to a GPS coordinate
+        for i, frame in enumerate(frames):
+            # Calculate progress through flight (0.0 to 1.0)
+            progress = i / (total_frames - 1) if total_frames > 1 else 0.0
+            
+            # Convert progress to distance along path
+            target_distance = progress * total_distance
+            
+            # Find GPS coordinates at this distance
+            gps_coords = self._interpolate_gps_at_distance(
+                target_distance, flight_plan.points, cumulative_distances
+            )
+            
+            frame.gps_coords = gps_coords
+    
+    def _interpolate_gps_at_distance(self, target_distance: float, 
+                                   waypoints: List[FlightPoint],
+                                   cumulative_distances: List[float]) -> Tuple[float, float, float]:
+        """Find GPS coordinates at specific distance along path"""
+        
+        if target_distance <= 0:
+            wp = waypoints[0]
+            return (wp.lat, wp.lon, wp.alt if wp.alt else 100.0)
+        
+        if target_distance >= cumulative_distances[-1]:
+            wp = waypoints[-1]
+            return (wp.lat, wp.lon, wp.alt if wp.alt else 100.0)
+        
+        # Find segment containing target distance
+        for i in range(len(cumulative_distances) - 1):
+            if cumulative_distances[i] <= target_distance <= cumulative_distances[i + 1]:
+                segment_start_dist = cumulative_distances[i]
+                segment_end_dist = cumulative_distances[i + 1]
+                segment_length = segment_end_dist - segment_start_dist
+                
+                if segment_length > 0:
+                    segment_progress = (target_distance - segment_start_dist) / segment_length
+                else:
+                    segment_progress = 0.0
+                
+                # Interpolate between waypoints
+                wp1 = waypoints[i]
+                wp2 = waypoints[i + 1]
+                
+                lat = wp1.lat + (wp2.lat - wp1.lat) * segment_progress
+                lon = wp1.lon + (wp2.lon - wp1.lon) * segment_progress
+                
+                alt1 = wp1.alt if wp1.alt else 100
+                alt2 = wp2.alt if wp2.alt else 100
+                alt = alt1 + (alt2 - alt1) * segment_progress
+                
+                return (lat, lon, alt)
+        
+        # Fallback
+        wp = waypoints[0]
+        return (wp.lat, wp.lon, wp.alt if wp.alt else 100.0)
+
+# =============================================================================
+# CORRIDOR SURVEY GENERATOR (YOUR EXISTING CODE)
+# =============================================================================
+
+class CorridorSurveyGenerator:
+    """Generate corridor survey patterns around the actual flight path"""
+    
+    def generate_corridor_survey(self, original_plan: FlightPlan, 
+                                corridor_width_meters: float = 10.0) -> CorridorSurveyPlan:
+        """Generate systematic corridor survey around the flight path"""
+        
+        logger.info(f"🛤️  Generating {corridor_width_meters}m corridor survey")
+        
+        if len(original_plan.points) < 2:
+            logger.warning("Need at least 2 waypoints for corridor survey")
+            return CorridorSurveyPlan(corridor_width_meters, [], 0, 0)
+        
+        corridor_waypoints = []
+        half_width = corridor_width_meters / 2
+        total_distance = 0
+        
+        # Generate waypoints for each segment
+        for i in range(len(original_plan.points) - 1):
+            current_point = original_plan.points[i]
+            next_point = original_plan.points[i + 1]
+            
+            # Calculate bearing between points
+            bearing = self._calculate_bearing(current_point, next_point)
+            
+            # Calculate segment distance
+            segment_distance = haversine_distance(
+                current_point.lat, current_point.lon,
+                next_point.lat, next_point.lon
+            )
+            total_distance += segment_distance
+            
+            # Generate corridor waypoints for this segment
+            segment_waypoints = self._generate_segment_corridor(
+                current_point, next_point, half_width, bearing, i
+            )
+            corridor_waypoints.extend(segment_waypoints)
+        
+        # Calculate coverage area
+        coverage_area = corridor_width_meters * total_distance
+        
+        return CorridorSurveyPlan(
+            corridor_width_meters=corridor_width_meters,
+            waypoints=corridor_waypoints,
+            coverage_area_sqm=coverage_area,
+            flight_distance_meters=total_distance
+        )
+    
+    def _calculate_bearing(self, point1: FlightPoint, point2: FlightPoint) -> float:
+        """Calculate bearing between two points"""
+        lat1, lon1 = math.radians(point1.lat), math.radians(point1.lon)
+        lat2, lon2 = math.radians(point2.lat), math.radians(point2.lon)
+        
+        dlon = lon2 - lon1
+        y = math.sin(dlon) * math.cos(lat2)
+        x = math.cos(lat1) * math.sin(lat2) - math.sin(lat1) * math.cos(lat2) * math.cos(dlon)
+        
+        bearing = math.atan2(y, x)
+        return (math.degrees(bearing) + 360) % 360
+    
+    def _generate_segment_corridor(self, point1: FlightPoint, point2: FlightPoint,
+                                 half_width_meters: float, bearing: float, 
+                                 segment_index: int) -> List[FlightPoint]:
+        """Generate corridor waypoints for one segment"""
+        
+        # Calculate perpendicular bearings (left and right of flight path)
+        left_bearing = (bearing + 90) % 360
+        right_bearing = (bearing - 90) % 360
+        
+        # Generate offset points
+        left_start = self._offset_point(point1, left_bearing, half_width_meters)
+        right_start = self._offset_point(point1, right_bearing, half_width_meters)
+        left_end = self._offset_point(point2, left_bearing, half_width_meters)
+        right_end = self._offset_point(point2, right_bearing, half_width_meters)
+        
+        # Create waypoints for systematic coverage
+        waypoints = [
+            FlightPoint(left_start[0], left_start[1], 100, f"corridor_L{segment_index}_start"),
+            FlightPoint(left_end[0], left_end[1], 100, f"corridor_L{segment_index}_end"),
+            FlightPoint(right_end[0], right_end[1], 100, f"corridor_R{segment_index}_end"),
+            FlightPoint(right_start[0], right_start[1], 100, f"corridor_R{segment_index}_start"),
+        ]
+        
+        return waypoints
+    
+    def _offset_point(self, point: FlightPoint, bearing: float, distance_meters: float) -> Tuple[float, float]:
+        """Calculate new point offset by bearing and distance"""
+        lat_offset, lon_offset = meters_to_degrees(distance_meters, point.lat)
+        
+        bearing_rad = math.radians(bearing)
+        lat_delta = lat_offset * math.cos(bearing_rad)
+        lon_delta = lon_offset * math.sin(bearing_rad)
+        
+        return (point.lat + lat_delta, point.lon + lon_delta)
+
+# =============================================================================
+# PHOTO OPTIMIZATION ANALYZER (YOUR EXISTING CODE)
+# =============================================================================
+
+class PhotoOptimizationAnalyzer:
+    """Fixed photo optimization analyzer with proper frame-segment mapping"""
+    
+    def __init__(self):
+        self.fps_thresholds = {
+            "empty": 0.5,
+            "low": 1.0,
+            "medium": 3.0,
+            "high": 6.0,
+            "very_high": 10.0
+        }
+    
+    def analyze_photo_requirements(self, frames: List[FlightFrame], 
+                                 flight_plan: FlightPlan) -> List[PhotoSegmentRecommendation]:
+        """Fixed analysis that properly maps frames to segments"""
+        
+        if len(flight_plan.points) < 2:
+            return []
+        
+        segment_mappings = self._create_frame_segment_mappings(frames, flight_plan)
+        recommendations = []
+        
+        for i, mapping in enumerate(segment_mappings):
+            current_wp = flight_plan.points[i]
+            next_wp = flight_plan.points[i + 1]
+            
+            segment_frames = mapping['frames_in_segment']
+            
+            objects_in_segment = sum(len(frame.detected_objects) for frame in segment_frames)
+            unique_objects = len(set(
+                obj.label for frame in segment_frames for obj in frame.detected_objects
+            ))
+            
+            segment_distance = haversine_distance(
+                current_wp.lat, current_wp.lon, next_wp.lat, next_wp.lon
+            )
+            
+            frames_count = len(segment_frames)
+            density_score = objects_in_segment / frames_count if frames_count > 0 else 0
+            
+            recommended_fps, reasoning = self._calculate_adaptive_fps(
+                objects_in_segment, unique_objects, frames_count, density_score
+            )
+            
+            recommendation = PhotoSegmentRecommendation(
+                segment_start=(current_wp.lat, current_wp.lon),
+                segment_end=(next_wp.lat, next_wp.lon),
+                distance_meters=segment_distance,
+                objects_found=objects_in_segment,
+                unique_object_types=unique_objects,
+                recommended_fps=recommended_fps,
+                reasoning=reasoning
+            )
+            
+            recommendations.append(recommendation)
+        
+        return recommendations
+    
+    def _create_frame_segment_mappings(self, frames: List[FlightFrame], 
+                                     flight_plan: FlightPlan) -> List[Dict]:
+        """Create proper mapping between frames and flight segments"""
+        
+        num_segments = len(flight_plan.points) - 1
+        total_frames = len(frames)
+        
+        base_frames_per_segment = total_frames // num_segments
+        extra_frames = total_frames % num_segments
+        
+        mappings = []
+        current_frame_index = 0
+        
+        for segment_idx in range(num_segments):
+            frames_in_this_segment = base_frames_per_segment
+            if segment_idx < extra_frames:
+                frames_in_this_segment += 1
+            
+            start_frame_idx = current_frame_index
+            end_frame_idx = current_frame_index + frames_in_this_segment
+            
+            segment_frames = frames[start_frame_idx:end_frame_idx]
+            
+            mapping = {
+                'segment_index': segment_idx,
+                'segment_start_frame': start_frame_idx,
+                'segment_end_frame': end_frame_idx,
+                'frames_in_segment': segment_frames
+            }
+            
+            mappings.append(mapping)
+            current_frame_index = end_frame_idx
+        
+        return mappings
+    
+    def _calculate_adaptive_fps(self, objects_found: int, unique_objects: int, 
+                              frames_analyzed: int, density_score: float) -> Tuple[float, str]:
+        """Calculate adaptive FPS based on actual object density"""
+        
+        if frames_analyzed == 0:
+            return self.fps_thresholds["empty"], "No frames in this segment"
+        
+        if density_score >= 3.0:
+            recommended_fps = self.fps_thresholds["very_high"]
+            reasoning = f"Very high density: {density_score:.1f} objects/frame ({objects_found} total objects)"
+            
+        elif density_score >= 1.5:
+            recommended_fps = self.fps_thresholds["high"]
+            reasoning = f"High density: {density_score:.1f} objects/frame ({objects_found} total objects)"
+            
+        elif density_score >= 0.5:
+            recommended_fps = self.fps_thresholds["medium"]
+            reasoning = f"Medium density: {density_score:.1f} objects/frame ({objects_found} total objects)"
+            
+        elif density_score > 0:
+            recommended_fps = self.fps_thresholds["low"]
+            reasoning = f"Low density: {density_score:.1f} objects/frame ({objects_found} total objects)"
+            
+        else:
+            recommended_fps = self.fps_thresholds["empty"]
+            reasoning = f"No objects detected in {frames_analyzed} frames - minimal coverage"
+        
+        return recommended_fps, reasoning
+
+# =============================================================================
+# OBJECT LOCATION ANALYZER (YOUR EXISTING CODE)
+# =============================================================================
+
+class ObjectLocationAnalyzer:
+    """Analyze where specific objects were actually found"""
+    
+    def find_object_locations(self, frames: List[FlightFrame], 
+                            target_objects: List[str]) -> List[ObjectLocation]:
+        """Find where target objects were actually detected"""
+        
+        logger.info(f"🔍 Searching for objects: {target_objects}")
+        
+        found_locations = []
+        
+        for frame in frames:
+            for obj in frame.detected_objects:
+                # Check if this object matches any target (flexible matching)
+                if self._is_target_object(obj.label, target_objects):
+                    location = ObjectLocation(
+                        object_type=obj.label,
+                        gps_location=(frame.gps_coords[0], frame.gps_coords[1]),
+                        frame_id=frame.frame_id,
+                        confidence=obj.confidence
+                    )
+                    found_locations.append(location)
+        
+        logger.info(f"📍 Found {len(found_locations)} target object locations")
+        return found_locations
+    
+    def _is_target_object(self, detected_label: str, target_objects: List[str]) -> bool:
+        """Check if detected object matches any target objects"""
+        detected_lower = detected_label.lower()
+        
+        for target in target_objects:
+            target_lower = target.lower()
+            
+            # Exact match
+            if target_lower == detected_lower:
+                return True
+            
+            # Partial match
+            if target_lower in detected_lower or detected_lower in target_lower:
+                return True
+            
+            # Semantic matching
+            if self._semantic_match(target_lower, detected_lower):
+                return True
+        
+        return False
+    
+    def _semantic_match(self, target: str, detected: str) -> bool:
+        """Basic semantic matching for related objects"""
+        semantic_groups = {
+            "vehicle": ["car", "truck", "bus", "motorcycle", "van"],
+            "person": ["human", "people", "pedestrian"],
+            "furniture": ["chair", "table", "bench"],
+        }
+        
+        # Check if target is a group name that includes detected object
+        if target in semantic_groups and detected in semantic_groups[target]:
+            return True
+        
+        # Check reverse
+        for group_name, items in semantic_groups.items():
+            if detected == group_name and target in items:
+                return True
+        
+        return False
+
+# =============================================================================
+# ENHANCED MAIN MISSION ANALYZER
+# =============================================================================
+
+class EnhancedSingleFlightMissionAnalyzer:
+    """Enhanced analyzer with heat map capabilities"""
+    
+    def __init__(self):
+        # Keep all your existing analyzers
+        self.query_parser = SimpleQueryParser()
+        self.data_processor = FlightDataProcessor()
+        self.corridor_generator = CorridorSurveyGenerator()
+        self.adaptive_corridor_generator = DensityAdaptiveCorridorGenerator() 
+        self.photo_analyzer = PhotoOptimizationAnalyzer()
+        self.object_analyzer = ObjectLocationAnalyzer()
+        
+        # Add heat map generator
+        self.heat_map_generator = InformationDensityHeatMapGenerator(grid_size_meters=15.0)
+    
+    def analyze_mission(self, flight_plan_file: str, detection_json_file: str, 
+                       user_query: str) -> Dict[str, Any]:
+        """Enhanced mission analysis with heat map generation"""
+        
+        logger.info(f"🔍 Enhanced Single-Flight Mission Analysis")
+        logger.info(f"Query: {user_query}")
+        
+        # Parse the user query
+        query_type, query_params = self.query_parser.parse_query(user_query)
+        logger.info(f"📋 Query type: {query_type.value}")
+        
+        # Load flight plan and detection data
+        flight_plan = FlightPlanParser.parse_file(flight_plan_file)
+        frames = self.data_processor.load_flight_data(detection_json_file, flight_plan)
+        
+        # Generate heat map for all queries
+        heat_map = self.heat_map_generator.generate_heat_map(frames, flight_plan)
+        
+        # Generate basic flight statistics
+        flight_stats = self._calculate_flight_statistics(flight_plan, frames)
+        
+        # Process based on query type
+        result = {
+            "query": user_query,
+            "query_type": query_type.value,
+            "flight_statistics": flight_stats,
+            "heat_map_statistics": self._format_heat_map_statistics(heat_map),
+            "analysis_results": {}
+        }
+        
+        # Your existing query processing logic
+        if query_type == QueryType.CORRIDOR_SURVEY:
+            corridor_width = query_params.get("corridor_width_meters", 10.0)
+            use_adaptive = query_params.get("use_adaptive", True)
+            
+            if use_adaptive:
+                adaptive_plan = self.adaptive_corridor_generator.generate_adaptive_corridor_survey(
+                    flight_plan, frames, corridor_width
+                )
+                result["analysis_results"] = self._format_adaptive_corridor_results(adaptive_plan)
+                result["survey_type"] = "adaptive_density"
+            else:
+                corridor_plan = self.corridor_generator.generate_corridor_survey(
+                    flight_plan, corridor_width
+                )
+                result["analysis_results"] = self._format_corridor_results(corridor_plan)
+                result["survey_type"] = "uniform"
+                
+        elif query_type == QueryType.PHOTO_OPTIMIZATION:
+            photo_recommendations = self.photo_analyzer.analyze_photo_requirements(frames, flight_plan)
+            result["analysis_results"] = self._format_photo_results(photo_recommendations)
+            
+        elif query_type == QueryType.OBJECT_LOCATION:
+            target_objects = query_params.get("target_objects", [])
+            object_locations = self.object_analyzer.find_object_locations(frames, target_objects)
+            result["analysis_results"] = self._format_object_results(object_locations, target_objects)
+            
+        else:  # FLIGHT_OPTIMIZATION
+            result["analysis_results"] = self._format_general_analysis(frames, flight_plan)
+        
+        # Save all results including heat map
+        self._save_enhanced_results(result, heat_map, flight_plan, flight_plan_file)
+        
+        return result
+    
+    def _calculate_flight_statistics(self, flight_plan: FlightPlan, 
+        frames: List[FlightFrame]) -> Dict[str, Any]:
+        """Calculate basic statistics about the flight"""
+        
+        # Flight plan statistics
+        total_distance = 0
+        if len(flight_plan.points) > 1:
+            for i in range(len(flight_plan.points) - 1):
+                total_distance += haversine_distance(
+                    flight_plan.points[i].lat, flight_plan.points[i].lon,
+                    flight_plan.points[i+1].lat, flight_plan.points[i+1].lon
+                )
+        
+        # Detection statistics
+        total_detections = sum(len(frame.detected_objects) for frame in frames)
+        frames_with_detections = len([f for f in frames if f.detected_objects])
+        
+        # Object type statistics
+        all_objects = [obj.label for frame in frames for obj in frame.detected_objects]
+        unique_object_types = list(set(all_objects))
+        object_counts = {obj_type: all_objects.count(obj_type) for obj_type in unique_object_types}
+        
+        return {
+            "original_waypoints": len(flight_plan.points),
+            "flight_distance_meters": total_distance,
+            "total_frames": len(frames),
+            "frames_with_detections": frames_with_detections,
+            "total_objects_detected": total_detections,
+            "unique_object_types": len(unique_object_types),
+            "object_type_counts": object_counts
+        }
+    
+    def _format_heat_map_statistics(self, heat_map: HeatMapData) -> Dict[str, Any]:
+        """Format heat map statistics for the result"""
+        
+        intensity_counts = {}
+        for level in ["very_high", "high", "medium", "low", "none"]:
+            count = len([cell for cell in heat_map.cells if cell.intensity_level == level])
+            intensity_counts[level] = count
+        
+        return {
+            "grid_size_meters": heat_map.grid_size_meters,
+            "total_cells": heat_map.total_cells,
+            "active_cells": heat_map.active_cells,
+            "max_density_score": heat_map.max_density,
+            "intensity_distribution": intensity_counts,
+            "coverage_area_sqkm": (heat_map.total_cells * (heat_map.grid_size_meters ** 2)) / 1000000,
+            "information_density_percent": (heat_map.active_cells / heat_map.total_cells) * 100 if heat_map.total_cells > 0 else 0
+        }
+
+    def _format_adaptive_corridor_results(self, adaptive_plan: AdaptiveCorridorPlan) -> Dict[str, Any]:
+        """Format adaptive corridor survey results"""
+        
+        high_density_zones = [z for z in adaptive_plan.density_zones if z.survey_intensity == "high"]
+        medium_density_zones = [z for z in adaptive_plan.density_zones if z.survey_intensity == "medium"] 
+        low_density_zones = [z for z in adaptive_plan.density_zones if z.survey_intensity == "low"]
+        
+        total_objects = sum(z.objects_detected for z in adaptive_plan.density_zones)
+        total_distance = sum(z.segment_distance for z in adaptive_plan.density_zones)
+        
+        return {
+            "corridor_width_meters": adaptive_plan.corridor_width_meters,
+            "survey_type": "adaptive_density",
+            "total_waypoints": adaptive_plan.total_waypoints,
+            "waypoint_distribution": {
+                "high_density_areas": adaptive_plan.high_density_waypoints,
+                "medium_density_areas": adaptive_plan.medium_density_waypoints,
+                "low_density_areas": adaptive_plan.low_density_waypoints
+            },
+            "coverage_efficiency_percent": round(adaptive_plan.coverage_efficiency, 1),
+            "coverage_statistics": {
+                "total_zones": len(adaptive_plan.density_zones),
+                "high_priority_zones": len(high_density_zones),
+                "medium_priority_zones": len(medium_density_zones), 
+                "low_priority_zones": len(low_density_zones),
+                "total_objects_found": total_objects,
+                "average_density": (total_objects / total_distance * 10) if total_distance > 0 else 0
+            },
+            "density_zones": [
+                {
+                    "zone_id": f"zone_{i+1}",
+                    "start_location": {"lat": zone.start_point.lat, "lon": zone.start_point.lon},
+                    "end_location": {"lat": zone.end_point.lat, "lon": zone.end_point.lon},
+                    "distance_meters": round(zone.segment_distance, 1),
+                    "objects_detected": zone.objects_detected,
+                    "unique_object_types": zone.unique_object_types,
+                    "density_score": round(zone.density_score, 2),
+                    "survey_intensity": zone.survey_intensity,
+                    "recommended_passes": zone.recommended_passes,
+                    "waypoint_spacing_meters": zone.waypoint_spacing
+                }
+                for i, zone in enumerate(adaptive_plan.density_zones)
+            ],
+            "waypoint_locations": [
+                {"lat": wp.lat, "lon": wp.lon, "name": wp.name}
+                for wp in adaptive_plan.all_waypoints
+            ],
+            "summary": f"Generated {adaptive_plan.total_waypoints} adaptive waypoints: {adaptive_plan.high_density_waypoints} in high-density areas, {adaptive_plan.medium_density_waypoints} in medium-density areas, {adaptive_plan.low_density_waypoints} in low-density areas. Coverage efficiency: {adaptive_plan.coverage_efficiency:.1f}%"
+        }
+
+    def _format_corridor_results(self, corridor_plan: CorridorSurveyPlan) -> Dict[str, Any]:
+        """Format uniform corridor survey results"""
+        return {
+            "corridor_width_meters": corridor_plan.corridor_width_meters,
+            "survey_waypoints": len(corridor_plan.waypoints),
+            "coverage_area_square_meters": corridor_plan.coverage_area_sqm,
+            "total_survey_distance_meters": corridor_plan.flight_distance_meters,
+            "waypoint_locations": [
+                {"lat": wp.lat, "lon": wp.lon, "name": wp.name} 
+                for wp in corridor_plan.waypoints
+            ],
+            "summary": f"Generated {len(corridor_plan.waypoints)} waypoints to survey {corridor_plan.corridor_width_meters}m corridor around original flight path"
+        }
+
+    def _format_photo_results(self, recommendations: List[PhotoSegmentRecommendation]) -> Dict[str, Any]:
+        """Format photo optimization results"""
+        
+        if not recommendations:
+            return {
+                "total_segments_analyzed": 0,
+                "average_recommended_fps": 0,
+                "total_estimated_photos": 0,
+                "segment_recommendations": [],
+                "summary": "No segments to analyze"
+            }
+        
+        total_distance = sum(rec.distance_meters for rec in recommendations)
+        avg_fps = np.mean([rec.recommended_fps for rec in recommendations])
+        
+        # Estimate total photos (assuming 5 m/s flight speed)
+        flight_time_seconds = total_distance / 5.0
+        weighted_fps = sum(
+            rec.recommended_fps * (rec.distance_meters / total_distance) 
+            for rec in recommendations
+        )
+        total_estimated_photos = int(flight_time_seconds * weighted_fps)
+        
+        return {
+            "total_segments_analyzed": len(recommendations),
+            "average_recommended_fps": round(avg_fps, 1),
+            "total_estimated_photos": total_estimated_photos,
+            "segment_recommendations": [
+                {
+                    "segment": f"Segment {i+1}",
+                    "start_location": {"lat": rec.segment_start[0], "lon": rec.segment_start[1]},
+                    "end_location": {"lat": rec.segment_end[0], "lon": rec.segment_end[1]},
+                    "distance_meters": round(rec.distance_meters, 1),
+                    "objects_found": rec.objects_found,
+                    "unique_object_types": rec.unique_object_types,
+                    "recommended_fps": rec.recommended_fps,
+                    "reasoning": rec.reasoning
+                }
+                for i, rec in enumerate(recommendations)
+            ],
+            "summary": f"Analyzed {len(recommendations)} segments. Recommend variable photo rate averaging {avg_fps:.1f} fps based on object density found during flight."
+        }
+
+    def _format_object_results(self, locations: List[ObjectLocation], 
+                            target_objects: List[str]) -> Dict[str, Any]:
+        """Format object location results"""
+        
+        # Group by object type
+        objects_by_type = {}
+        for location in locations:
+            if location.object_type not in objects_by_type:
+                objects_by_type[location.object_type] = []
+            objects_by_type[location.object_type].append(location)
+        
+        return {
+            "target_objects_searched": target_objects,
+            "total_locations_found": len(locations),
+            "object_types_found": list(objects_by_type.keys()),
+            "locations_by_type": {
+                obj_type: [
+                    {
+                        "gps_location": {"lat": loc.gps_location[0], "lon": loc.gps_location[1]},
+                        "frame_id": loc.frame_id,
+                        "confidence": loc.confidence
+                    }
+                    for loc in locs
+                ]
+                for obj_type, locs in objects_by_type.items()
+            },
+            "summary": f"Found {len(locations)} instances of target objects across {len(set(loc.object_type for loc in locations))} different types."
+        }
+
+    def _format_general_analysis(self, frames: List[FlightFrame], 
+                            flight_plan: FlightPlan) -> Dict[str, Any]:
+        """Format general flight analysis"""
+        
+        # Find areas with highest object density
+        high_activity_frames = [f for f in frames if len(f.detected_objects) >= 2]
+        
+        return {
+            "flight_analysis": "General optimization analysis",
+            "high_activity_locations": [
+                {
+                    "frame_id": frame.frame_id,
+                    "gps_location": {"lat": frame.gps_coords[0], "lon": frame.gps_coords[1]},
+                    "objects_detected": len(frame.detected_objects),
+                    "object_types": [obj.label for obj in frame.detected_objects]
+                }
+                for frame in high_activity_frames[:10]  # Top 10
+            ],
+            "summary": f"Identified {len(high_activity_frames)} high-activity locations with 2+ objects detected."
+        }
+    
+    def _save_enhanced_results(self, results: Dict[str, Any], heat_map: HeatMapData, 
+                             flight_plan: FlightPlan, original_file: str):
+        """Save enhanced results with QGIS background PNG"""
+        
+        ensure_hawkeye_output_directory()
+        base_name = Path(original_file).stem
+        
+        # Save main results JSON
+        output_file = get_hawkeye_output_path(f"enhanced_analysis_{base_name}.json")
+        with open(output_file, 'w') as f:
+            json.dump(results, f, indent=2)
+        
+        results["output_file"] = output_file
+        
+        # Generate heat map PNG (simple version)
+        heat_map_png_path = get_hawkeye_output_path(f"heat_map_{base_name}.png")
+        self.heat_map_generator.generate_heat_map_png(
+            heat_map, heat_map_png_path, flight_plan, base_name
+        )
+        results["heat_map_png"] = heat_map_png_path
+        
+        # Generate corridor survey with QGIS background if applicable
+        if results["query_type"] == "corridor_survey" and "analysis_results" in results:
+            analysis = results["analysis_results"]
+            if "density_zones" in analysis:  # Adaptive corridor
+                # Reconstruct adaptive plan for visualization
+                adaptive_plan = self._reconstruct_adaptive_plan(analysis)
+                corridor_png_path = get_hawkeye_output_path(f"corridor_survey_with_map_{base_name}.png")
+                
+                # Try QGIS version first, fall back to matplotlib
+                self.heat_map_generator.generate_corridor_survey_with_qgis_background(
+                    adaptive_plan, heat_map, corridor_png_path, flight_plan, base_name
+                )
+                results["corridor_png"] = corridor_png_path
+        
+        logger.info(f"📁 Enhanced results saved to: {HAWKEYE_OUTPUT_FOLDER}/")
+    
+    def _reconstruct_adaptive_plan(self, analysis: Dict[str, Any]) -> AdaptiveCorridorPlan:
+        """Reconstruct adaptive plan from analysis results for visualization"""
+        # This is a simplified reconstruction - you might want to store the full plan
+        waypoints = []
+        for wp_data in analysis.get("waypoint_locations", []):
+            waypoint = FlightPoint(
+                lat=wp_data["lat"],
+                lon=wp_data["lon"], 
+                alt=100,
+                name=wp_data["name"]
+            )
+            waypoints.append(waypoint)
+        
+        # Create a dummy adaptive plan for visualization
+        return AdaptiveCorridorPlan(
+            corridor_width_meters=analysis.get("corridor_width_meters", 10.0),
+            density_zones=[],  # We don't need these for visualization
+            total_waypoints=analysis.get("total_waypoints", 0),
+            high_density_waypoints=analysis.get("waypoint_distribution", {}).get("high_density_areas", 0),
+            medium_density_waypoints=analysis.get("waypoint_distribution", {}).get("medium_density_areas", 0),
+            low_density_waypoints=analysis.get("waypoint_distribution", {}).get("low_density_areas", 0),
+            coverage_efficiency=analysis.get("coverage_efficiency_percent", 0.0),
+            all_waypoints=waypoints
+        )
+    
+    def _save_enhanced_corridor_kml(self, results: Dict[str, Any], kml_path: str, original_file: str):
+        """Save enhanced corridor survey KML"""
+        
+        analysis = results["analysis_results"]
+        base_name = Path(original_file).stem
+        
+        kml_content = f'''<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <n>Enhanced Corridor Survey - {base_name}</n>
+    <description>
+      Density-adaptive corridor survey with heat map integration
+      Total waypoints: {analysis.get('total_waypoints', 0)}
+      Survey type: {results.get('survey_type', 'unknown')}
+    </description>
+    
+    <!-- Enhanced styles -->
+    <Style id="highDensityWaypoint">
+      <IconStyle>
+        <color>ff0000ff</color>
+        <scale>1.3</scale>
+        <Icon>
+          <href>http://maps.google.com/mapfiles/kml/paddle/red-stars.png</href>
+        </Icon>
+      </IconStyle>
+    </Style>
+    
+    <Style id="mediumDensityWaypoint">
+      <IconStyle>
+        <color>ff00ffff</color>
+        <scale>1.1</scale>
+        <Icon>
+          <href>http://maps.google.com/mapfiles/kml/paddle/ylw-stars.png</href>
+        </Icon>
+      </IconStyle>
+    </Style>
+    
+    <Style id="lowDensityWaypoint">
+      <IconStyle>
+        <color>ff00ff00</color>
+        <scale>0.9</scale>
+        <Icon>
+          <href>http://maps.google.com/mapfiles/kml/paddle/grn-stars.png</href>
+        </Icon>
+      </IconStyle>
+    </Style>
+    
+    <Folder>
+      <n>Adaptive Survey Waypoints</n>
+'''
+        
+        # Add waypoints with enhanced information
+        if "waypoint_locations" in analysis:
+            for wp in analysis["waypoint_locations"]:
+                # Determine style based on waypoint name
+                if "high" in wp['name'].lower():
+                    style_id = "highDensityWaypoint"
+                    priority = "High Priority"
+                elif "medium" in wp['name'].lower():
+                    style_id = "mediumDensityWaypoint"
+                    priority = "Medium Priority"
+                else:
+                    style_id = "lowDensityWaypoint"
+                    priority = "Low Priority"
+                
+                kml_content += f'''      <Placemark>
+        <n>{wp['name']}</n>
+        <description>
+          Priority: {priority}
+          GPS: {wp['lat']:.6f}, {wp['lon']:.6f}
+          Survey Type: Adaptive Density-Based
+        </description>
+        <styleUrl>#{style_id}</styleUrl>
+        <Point>
+          <coordinates>{wp['lon']},{wp['lat']},100</coordinates>
+        </Point>
+      </Placemark>
+'''
+        
+        kml_content += '''    </Folder>
+  </Document>
+</kml>'''
+        
+        with open(kml_path, 'w') as f:
+            f.write(kml_content)
+        
+        logger.info(f"🗺️ Enhanced corridor KML saved: {kml_path}")
+
+# =============================================================================
+# MAIN EXECUTION FUNCTIONS
+# =============================================================================
+
+def enhanced_main():
+    """Enhanced main function with heat map generation"""
+    print("🔥 Enhanced Single-Flight Drone Mission Analysis System")
+    print("=" * 70)
+    print("✨ Now with Information Density Heat Maps!")
+    print(" Analyzes: ONE KML flight + ONE JSON detection file + YOUR query")
+    print(" Provides: Actionable insights + Heat map visualization + KML outputs")
+    print()
+    
+    # File paths
+    flight_plan_file = "panover.kml"
+    detection_json_file = "panover_detection_results.json"
+    
+    # Check files exist
+    if not Path(flight_plan_file).exists():
+        print(f"❌ Flight plan not found: {flight_plan_file}")
+        return
+    
+    if not Path(detection_json_file).exists():
+        print(f"❌ Detection data not found: {detection_json_file}")
+        return
+    
+    print(f"✅ Files loaded successfully!")
+    print(f"📄 Flight plan: {flight_plan_file}")
+    print(f"📊 Detection data: {detection_json_file}")
+    
+    # Get user query
+    user_query = "Survey the area 15 meters around this flight path"
+    print(f"❓ Query: {user_query}")
+    
+    # Use enhanced analyzer
+    enhanced_analyzer = EnhancedSingleFlightMissionAnalyzer()
+    
+    try:
+        results = enhanced_analyzer.analyze_mission(
+            flight_plan_file=flight_plan_file,
+            detection_json_file=detection_json_file,
+            user_query=user_query
+        )
+        
+        print(f"\n{'='*70}")
+        print("🔥 ENHANCED MISSION ANALYSIS RESULTS")
+        print('='*70)
+        
+        print(f"\n📊 Query: {results['query']}")
+        print(f"🎯 Analysis Type: {results['query_type'].replace('_', ' ').title()}")
+        
+        # Flight statistics
+        stats = results['flight_statistics']
+        print(f"\n✈️ Flight Data Summary:")
+        print(f"   • Original waypoints: {stats['original_waypoints']}")
+        print(f"   • Flight distance: {stats['flight_distance_meters']:.0f} meters")
+        print(f"   • Total frames analyzed: {stats['total_frames']}")
+        print(f"   • Frames with objects: {stats['frames_with_detections']}")
+        print(f"   • Total objects detected: {stats['total_objects_detected']}")
+        print(f"   • Unique object types: {stats['unique_object_types']}")
+        
+        # Heat map statistics
+        heat_stats = results['heat_map_statistics']
+        print(f"\n🔥 Heat Map Analysis:")
+        print(f"   • Grid cell size: {heat_stats['grid_size_meters']}m")
+        print(f"   • Total analysis cells: {heat_stats['total_cells']}")
+        print(f"   • Information-rich cells: {heat_stats['active_cells']}")
+        print(f"   • Coverage area: {heat_stats['coverage_area_sqkm']:.2f} sq km")
+        print(f"   • Information density: {heat_stats['information_density_percent']:.1f}%")
+        print(f"   • Maximum density score: {heat_stats['max_density_score']:.1f}")
+        
+        # Heat map intensity distribution
+        intensity_dist = heat_stats['intensity_distribution']
+        print(f"\n🌡️ Information Intensity Distribution:")
+        if intensity_dist['very_high'] > 0:
+            print(f"   🔴 Very High Density: {intensity_dist['very_high']} cells")
+        if intensity_dist['high'] > 0:
+            print(f"   🟠 High Density: {intensity_dist['high']} cells")
+        if intensity_dist['medium'] > 0:
+            print(f"   🟡 Medium Density: {intensity_dist['medium']} cells")
+        if intensity_dist['low'] > 0:
+            print(f"   🟢 Low Density: {intensity_dist['low']} cells")
+        
+        # Analysis results based on query type
+        analysis = results['analysis_results']
+        print(f"\n🎯 Analysis Results:")
+        
+        if results['query_type'] == 'corridor_survey':
+            print(f"   📏 Corridor Width: {analysis['corridor_width_meters']}m")
+            print(f"   🎯 Survey Type: {results.get('survey_type', 'unknown').replace('_', ' ').title()}")
+            
+            if 'total_waypoints' in analysis:  # Adaptive corridor
+                print(f"   📍 Total Survey Waypoints: {analysis['total_waypoints']}")
+                if 'waypoint_distribution' in analysis:
+                    dist = analysis['waypoint_distribution']
+                    print(f"   🔴 High-Density Area Waypoints: {dist['high_density_areas']}")
+                    print(f"   🟡 Medium-Density Area Waypoints: {dist['medium_density_areas']}")
+                    print(f"   🟢 Low-Density Area Waypoints: {dist['low_density_areas']}")
+                    print(f"   ⚡ Coverage Efficiency: {analysis['coverage_efficiency_percent']}%")
+            
+            print(f"\n📋 Summary: {analysis['summary']}")
+        
+        print(f"\n📁 Generated Files:")
+        print(f"   📊 Enhanced Analysis: {Path(results['output_file']).name}")
+        print(f"   🔥 Heat Map Visualization: {Path(results['heat_map_png']).name}")
+        
+        if 'corridor_png' in results:
+            print(f"   🗺️ Full Survey Map (with background): {Path(results['corridor_png']).name}")
+        
+        print(f"\n📂 All files saved to: {HAWKEYE_OUTPUT_FOLDER}/")
+        
+        # Enhanced recommendations
+        print(f"\n💡 ENHANCED ACTIONABLE INSIGHTS:")
+        
+        # Heat map insights
+        active_percent = heat_stats['information_density_percent']
+        if active_percent > 50:
+            print(f"   🔥 HIGH INFORMATION DENSITY: {active_percent:.1f}% of area contains objects")
+            print(f"   ➤ This is an information-rich flight area - prioritize comprehensive coverage")
+        elif active_percent > 25:
+            print(f"   🟡 MODERATE INFORMATION DENSITY: {active_percent:.1f}% of area contains objects")
+            print(f"   ➤ Focus on the heat map's highlighted zones for efficient coverage")
+        else:
+            print(f"   🟢 SPARSE INFORMATION DENSITY: {active_percent:.1f}% of area contains objects")
+            print(f"   ➤ Use heat map to target specific high-value areas")
+        
+        # Query-specific insights
+        if results['query_type'] == 'corridor_survey':
+            if 'waypoint_distribution' in analysis:
+                dist = analysis['waypoint_distribution']
+                total_wp = analysis['total_waypoints']
+                high_ratio = (dist['high_density_areas'] / total_wp) * 100 if total_wp > 0 else 0
+                
+                if high_ratio > 40:
+                    print(f"   🎯 PRIORITY FOCUS: {high_ratio:.0f}% of waypoints target high-density areas")
+                    print(f"   ➤ This adaptive survey efficiently targets information-rich zones")
+                else:
+                    print(f"   📊 BALANCED COVERAGE: Survey includes diverse density areas")
+                    print(f"   ➤ Good for comprehensive area assessment")
+        
+        # Heat map usage recommendations
+        print(f"\n🎨 VISUALIZATION USAGE:")
+        print(f"   • heat_map_{Path(flight_plan_file).stem}.png - Simple heat map overlay")
+        print(f"   • corridor_survey_with_map_{Path(flight_plan_file).stem}.png - Complete mission map")
+        print(f"   • Red zones = highest object density (prioritize these areas)")
+        print(f"   • Orange zones = high density (secondary priority)")
+        print(f"   • Yellow zones = moderate density (monitor these areas)")
+        print(f"   • Green zones = low density (minimal coverage needed)")
+        print(f"   • Connected red lines show your optimized flight paths")
+        
+        print(f"\n✅ Enhanced analysis completed successfully!")
+        
+    except Exception as e:
+        print(f"\n❌ Enhanced analysis failed: {e}")
+        logger.error(f"Enhanced analysis failed: {e}", exc_info=True)
+
+def enhanced_demo():
+    """Enhanced demo showcasing heat map capabilities"""
+    print("🔥 Enhanced Demo with Heat Map Generation")
+    print("=" * 50)
+    
+    # Demo file paths
+    flight_plan_file = "panover.kml"
+    detection_json_file = "panover_detection_results.json"
+    
+    if not Path(flight_plan_file).exists() or not Path(detection_json_file).exists():
+        print("❌ Demo files not found. Using sample data...")
+        print("💡 Make sure you have panover.kml and panover_detection_results.json")
+        return
+    
+    print("✅ Demo files found!")
+    print(f"📁 Flight plan: {flight_plan_file}")
+    print(f"📄 Detection data: {detection_json_file}")
+    
+    # Demo queries that will showcase heat map
+    demo_queries = [
+        "Survey the area 20 meters around this flight path",
+        "Generate heat map of object density for mission planning",
+        "Where were the most objects detected during this flight?",
+        "Create optimized photo capture plan based on object density"
+    ]
+    
+    print("\n🔥 Enhanced Demo Queries (with heat map generation):")
+    for i, query in enumerate(demo_queries, 1):
+        print(f"   {i}. {query}")
+    
+    print("\n❓ Choose demo query (1-4) or enter custom:")
+    choice = input("Selection: ").strip()
+    
+    if choice.isdigit() and 1 <= int(choice) <= len(demo_queries):
+        selected_query = demo_queries[int(choice) - 1]
+    elif choice:
+        selected_query = choice
+    else:
+        selected_query = demo_queries[0]  # Default
+    
+    print(f"\n🚀 Running enhanced demo: '{selected_query}'")
+    print("⏳ Generating analysis + heat map...")
+    
+    # Run enhanced analysis
+    enhanced_analyzer = EnhancedSingleFlightMissionAnalyzer()
+    
+    try:
+        results = enhanced_analyzer.analyze_mission(
+            flight_plan_file=flight_plan_file,
+            detection_json_file=detection_json_file,
+            user_query=selected_query
+        )
+        
+        print("\n🎉 Enhanced demo completed successfully!")
+        print(f"\n📊 Results Summary:")
+        print(f"   • Query Type: {results['query_type'].replace('_', ' ').title()}")
+        print(f"   • Heat Map Cells: {results['heat_map_statistics']['total_cells']}")
+        print(f"   • Information-Rich Areas: {results['heat_map_statistics']['active_cells']}")
+        
+        print(f"\n📁 Generated Files:")
+        print(f"   🔥 Heat Map: {Path(results['heat_map_png']).name}")
+        print(f"   📊 Analysis: {Path(results['output_file']).name}")
+        
+        if 'corridor_png' in results:
+            print(f"   🛤️ Survey Plan: {Path(results['corridor_png']).name}")
+        
+        print(f"\n🎨 Next Steps:")
+        print(f"   1. Open heat_map_{Path(flight_plan_file).stem}.png")
+        print(f"   2. Observe red/orange areas (high object density)")
+        print(f"   3. Use this information for mission planning!")
+        print(f"   4. Load corridor survey PNG to see adaptive waypoints!")
+        
+    except Exception as e:
+        print(f"❌ Enhanced demo failed: {e}")
+        logger.error(f"Enhanced demo failed: {e}", exc_info=True)
+
+if __name__ == "__main__":
+    import sys
+    
+    if len(sys.argv) > 1 and sys.argv[1] == "--enhanced-demo":
+        enhanced_demo()
+    elif len(sys.argv) > 1 and sys.argv[1] == "--demo":
+        enhanced_demo()  # Use enhanced demo by default
+    else:
+        enhanced_main()
