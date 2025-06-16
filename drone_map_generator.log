@@ -1,0 +1,368 @@
+2025-06-15 15:53:31,941 - INFO - 📁 Parsing flight plan: path
+2025-06-15 15:53:31,941 - INFO - 📄 Detected format: 
+2025-06-15 15:53:31,941 - ERROR - ❌ Error extracting coordinates: Unsupported file format: 
+2025-06-15 15:56:23,384 - INFO - 📁 Parsing flight plan: casita-to-camp.kml
+2025-06-15 15:56:23,384 - INFO - 📄 Detected format: .kml
+2025-06-15 15:56:23,387 - INFO - 🔍 Found coordinates block with 654 characters
+2025-06-15 15:56:23,387 - INFO - 📊 Found 17 coordinate triplets
+2025-06-15 15:56:23,387 - INFO - ✅ Point 1: lat=36.270271, lon=-105.577320, alt=0.0
+2025-06-15 15:56:23,387 - INFO - ✅ Point 2: lat=36.270323, lon=-105.577249, alt=0.0
+2025-06-15 15:56:23,387 - INFO - ✅ Point 3: lat=36.270389, lon=-105.577194, alt=0.0
+2025-06-15 15:56:23,387 - INFO - 📍 Successfully parsed 17 waypoints from KML
+2025-06-15 15:56:23,387 - INFO - 🚁 Starting Flight Context Map Generation with GPS Coordinates
+2025-06-15 15:56:23,387 - INFO - ======================================================================
+2025-06-15 15:56:23,387 - INFO - 📁 Parsing flight plan: casita-to-camp.kml
+2025-06-15 15:56:23,387 - INFO - 📄 Detected format: .kml
+2025-06-15 15:56:23,387 - INFO - 🔍 Found coordinates block with 654 characters
+2025-06-15 15:56:23,388 - INFO - 📊 Found 17 coordinate triplets
+2025-06-15 15:56:23,388 - INFO - ✅ Point 1: lat=36.270271, lon=-105.577320, alt=0.0
+2025-06-15 15:56:23,388 - INFO - ✅ Point 2: lat=36.270323, lon=-105.577249, alt=0.0
+2025-06-15 15:56:23,388 - INFO - ✅ Point 3: lat=36.270389, lon=-105.577194, alt=0.0
+2025-06-15 15:56:23,388 - INFO - 📍 Successfully parsed 17 waypoints from KML
+2025-06-15 15:56:23,388 - INFO - ✅ Parsed flight plan: 17 waypoints
+2025-06-15 15:56:23,589 - INFO - ✅ QGIS initialized successfully
+2025-06-15 15:56:23,589 - INFO - 🗺️  Generating contextual map for flight plan: casita-to-camp
+2025-06-15 15:56:23,589 - INFO - 📍 Flight area: 17 waypoints
+2025-06-15 15:56:23,595 - INFO - 📊 GPS coordinates exported to: /Users/abhivur/Documents/SMU_REU/project/HawkEye/path/casita-to-camp_gps_coordinates.csv
+2025-06-15 15:56:23,596 - INFO - 🔍 Map extent: <QgsRectangle: -105.58473373415779406 36.26515217224389431, -105.57020717904501339 36.27686388395560613>
+2025-06-15 15:56:23,597 - WARNING - ❌ Failed to add OpenStreetMap layer
+2025-06-15 15:56:23,606 - INFO - ✅ Added waypoints layer with 17 points
+2025-06-15 15:56:23,607 - INFO - ✅ Added flight path layer
+2025-06-15 15:56:23,733 - INFO - 🖼️  Map rendered: 2048x1536 @ 300 DPI
+2025-06-15 15:56:23,733 - INFO - ✅ Map saved: /Users/abhivur/Documents/SMU_REU/project/HawkEye/path/casita-to-camp_contextual_map.png
+2025-06-15 15:56:23,733 - INFO - 🎉 SUCCESS! Contextual map with GPS coordinates generated
+2025-06-15 15:56:23,733 - INFO - 📁 Output: /Users/abhivur/Documents/SMU_REU/project/HawkEye/path/casita-to-camp_contextual_map.png
+2025-06-15 16:00:54,779 - INFO - 📁 Parsing flight plan: casita-to-camp.kml
+2025-06-15 16:00:54,779 - INFO - 📄 Detected format: .kml
+2025-06-15 16:00:54,780 - INFO - 🔍 Found coordinates block with 654 characters
+2025-06-15 16:00:54,780 - INFO - 📊 Found 17 coordinate triplets
+2025-06-15 16:00:54,780 - INFO - ✅ Point 1: lat=36.270271, lon=-105.577320, alt=0.0
+2025-06-15 16:00:54,780 - INFO - ✅ Point 2: lat=36.270323, lon=-105.577249, alt=0.0
+2025-06-15 16:00:54,780 - INFO - ✅ Point 3: lat=36.270389, lon=-105.577194, alt=0.0
+2025-06-15 16:00:54,780 - INFO - 📍 Successfully parsed 17 waypoints from KML
+2025-06-15 16:00:54,781 - INFO - 🚁 Starting Flight Context Map Generation with GPS Coordinates
+2025-06-15 16:00:54,781 - INFO - ======================================================================
+2025-06-15 16:00:54,781 - INFO - 📁 Parsing flight plan: casita-to-camp.kml
+2025-06-15 16:00:54,781 - INFO - 📄 Detected format: .kml
+2025-06-15 16:00:54,781 - INFO - 🔍 Found coordinates block with 654 characters
+2025-06-15 16:00:54,781 - INFO - 📊 Found 17 coordinate triplets
+2025-06-15 16:00:54,781 - INFO - ✅ Point 1: lat=36.270271, lon=-105.577320, alt=0.0
+2025-06-15 16:00:54,781 - INFO - ✅ Point 2: lat=36.270323, lon=-105.577249, alt=0.0
+2025-06-15 16:00:54,781 - INFO - ✅ Point 3: lat=36.270389, lon=-105.577194, alt=0.0
+2025-06-15 16:00:54,781 - INFO - 📍 Successfully parsed 17 waypoints from KML
+2025-06-15 16:00:54,781 - INFO - ✅ Parsed flight plan: 17 waypoints
+2025-06-15 16:00:54,932 - INFO - ✅ QGIS initialized successfully
+2025-06-15 16:00:54,932 - INFO - 🗺️  Generating contextual map for flight plan: casita-to-camp
+2025-06-15 16:00:54,932 - INFO - 📍 Flight area: 17 waypoints
+2025-06-15 16:00:54,936 - INFO - 📊 GPS coordinates exported to: /Users/abhivur/Documents/SMU_REU/project/HawkEye/path/casita-to-camp_gps_coordinates.csv
+2025-06-15 16:00:54,937 - INFO - 🔍 Map extent: <QgsRectangle: -105.58473373415779406 36.26515217224389431, -105.57020717904501339 36.27686388395560613>
+2025-06-15 16:00:54,937 - WARNING - ❌ Failed to add OpenStreetMap layer
+2025-06-15 16:00:54,939 - INFO - ✅ Added waypoints layer with 17 points
+2025-06-15 16:00:54,940 - INFO - ✅ Added flight path layer
+2025-06-15 16:00:55,053 - INFO - 🖼️  Map rendered: 2048x1536 @ 300 DPI
+2025-06-15 16:00:55,053 - INFO - ✅ Map saved: /Users/abhivur/Documents/SMU_REU/project/HawkEye/path/casita-to-camp_contextual_map.png
+2025-06-15 16:00:55,053 - INFO - 🎉 SUCCESS! Contextual map with GPS coordinates generated
+2025-06-15 16:00:55,053 - INFO - 📁 Output: /Users/abhivur/Documents/SMU_REU/project/HawkEye/path/casita-to-camp_contextual_map.png
+2025-06-15 16:01:33,172 - INFO - 📁 Parsing flight plan: casita-to-camp.kml
+2025-06-15 16:01:33,172 - INFO - 📄 Detected format: .kml
+2025-06-15 16:01:33,174 - INFO - 🔍 Found coordinates block with 654 characters
+2025-06-15 16:01:33,174 - INFO - 📊 Found 17 coordinate triplets
+2025-06-15 16:01:33,174 - INFO - ✅ Point 1: lat=36.270271, lon=-105.577320, alt=0.0
+2025-06-15 16:01:33,174 - INFO - ✅ Point 2: lat=36.270323, lon=-105.577249, alt=0.0
+2025-06-15 16:01:33,174 - INFO - ✅ Point 3: lat=36.270389, lon=-105.577194, alt=0.0
+2025-06-15 16:01:33,174 - INFO - 📍 Successfully parsed 17 waypoints from KML
+2025-06-15 16:01:33,174 - INFO - 🚁 Starting Flight Context Map Generation with GPS Coordinates
+2025-06-15 16:01:33,174 - INFO - ======================================================================
+2025-06-15 16:01:33,174 - INFO - 📁 Parsing flight plan: casita-to-camp.kml
+2025-06-15 16:01:33,174 - INFO - 📄 Detected format: .kml
+2025-06-15 16:01:33,174 - INFO - 🔍 Found coordinates block with 654 characters
+2025-06-15 16:01:33,174 - INFO - 📊 Found 17 coordinate triplets
+2025-06-15 16:01:33,174 - INFO - ✅ Point 1: lat=36.270271, lon=-105.577320, alt=0.0
+2025-06-15 16:01:33,174 - INFO - ✅ Point 2: lat=36.270323, lon=-105.577249, alt=0.0
+2025-06-15 16:01:33,174 - INFO - ✅ Point 3: lat=36.270389, lon=-105.577194, alt=0.0
+2025-06-15 16:01:33,175 - INFO - 📍 Successfully parsed 17 waypoints from KML
+2025-06-15 16:01:33,175 - INFO - ✅ Parsed flight plan: 17 waypoints
+2025-06-15 16:01:33,312 - INFO - ✅ QGIS initialized successfully
+2025-06-15 16:01:33,312 - INFO - 🗺️  Generating contextual map for flight plan: casita-to-camp
+2025-06-15 16:01:33,312 - INFO - 📍 Flight area: 17 waypoints
+2025-06-15 16:01:33,315 - INFO - 📊 GPS coordinates exported to: /Users/abhivur/Documents/SMU_REU/project/HawkEye/path/casita-to-camp_gps_coordinates.csv
+2025-06-15 16:01:33,315 - INFO - 🔍 Map extent: <QgsRectangle: -105.58473373415779406 36.26515217224389431, -105.57020717904501339 36.27686388395560613>
+2025-06-15 16:01:33,316 - WARNING - ❌ Failed to add OpenStreetMap layer
+2025-06-15 16:01:33,318 - INFO - ✅ Added waypoints layer with 17 points
+2025-06-15 16:01:33,318 - INFO - ✅ Added flight path layer
+2025-06-15 16:01:33,422 - INFO - 🖼️  Map rendered: 2048x1536 @ 300 DPI
+2025-06-15 16:01:33,422 - INFO - ✅ Map saved: /Users/abhivur/Documents/SMU_REU/project/HawkEye/path/casita-to-camp_contextual_map.png
+2025-06-15 16:01:33,423 - INFO - 🎉 SUCCESS! Contextual map with GPS coordinates generated
+2025-06-15 16:01:33,423 - INFO - 📁 Output: /Users/abhivur/Documents/SMU_REU/project/HawkEye/path/casita-to-camp_contextual_map.png
+2025-06-15 16:04:00,150 - INFO - 📁 Parsing flight plan: casita-to-camp.kml
+2025-06-15 16:04:00,151 - INFO - 📄 Detected format: .kml
+2025-06-15 16:04:00,152 - INFO - 🔍 Found coordinates block with 654 characters
+2025-06-15 16:04:00,152 - INFO - 📊 Found 17 coordinate triplets
+2025-06-15 16:04:00,152 - INFO - ✅ Point 1: lat=36.270271, lon=-105.577320, alt=0.0
+2025-06-15 16:04:00,152 - INFO - ✅ Point 2: lat=36.270323, lon=-105.577249, alt=0.0
+2025-06-15 16:04:00,152 - INFO - ✅ Point 3: lat=36.270389, lon=-105.577194, alt=0.0
+2025-06-15 16:04:00,152 - INFO - 📍 Successfully parsed 17 waypoints from KML
+2025-06-15 16:04:00,152 - INFO - 🚁 Starting Flight Context Map Generation with GPS Coordinates
+2025-06-15 16:04:00,152 - INFO - ======================================================================
+2025-06-15 16:04:00,152 - INFO - 📁 Parsing flight plan: casita-to-camp.kml
+2025-06-15 16:04:00,152 - INFO - 📄 Detected format: .kml
+2025-06-15 16:04:00,152 - INFO - 🔍 Found coordinates block with 654 characters
+2025-06-15 16:04:00,152 - INFO - 📊 Found 17 coordinate triplets
+2025-06-15 16:04:00,153 - INFO - ✅ Point 1: lat=36.270271, lon=-105.577320, alt=0.0
+2025-06-15 16:04:00,153 - INFO - ✅ Point 2: lat=36.270323, lon=-105.577249, alt=0.0
+2025-06-15 16:04:00,153 - INFO - ✅ Point 3: lat=36.270389, lon=-105.577194, alt=0.0
+2025-06-15 16:04:00,153 - INFO - 📍 Successfully parsed 17 waypoints from KML
+2025-06-15 16:04:00,153 - INFO - ✅ Parsed flight plan: 17 waypoints
+2025-06-15 16:04:00,296 - INFO - ✅ QGIS initialized successfully
+2025-06-15 16:04:00,296 - INFO - 🗺️  Generating contextual map for flight plan: casita-to-camp
+2025-06-15 16:04:00,296 - INFO - 📍 Flight area: 17 waypoints
+2025-06-15 16:04:00,299 - INFO - 📊 GPS coordinates exported to: /Users/abhivur/Documents/SMU_REU/project/HawkEye/path/casita-to-camp_gps_coordinates.csv
+2025-06-15 16:04:00,300 - INFO - 🔍 Map extent: <QgsRectangle: -105.58473373415779406 36.26515217224389431, -105.57020717904501339 36.27686388395560613>
+2025-06-15 16:04:00,300 - WARNING - ❌ Failed to add OpenStreetMap layer
+2025-06-15 16:04:00,302 - INFO - ✅ Added waypoints layer with 17 points
+2025-06-15 16:04:00,302 - INFO - ✅ Added flight path layer
+2025-06-15 16:04:00,406 - INFO - 🖼️  Map rendered: 2048x1536 @ 300 DPI
+2025-06-15 16:04:00,406 - INFO - ✅ Map saved: /Users/abhivur/Documents/SMU_REU/project/HawkEye/path/casita-to-camp_contextual_map.png
+2025-06-15 16:04:00,406 - INFO - 🎉 SUCCESS! Contextual map with GPS coordinates generated
+2025-06-15 16:04:00,406 - INFO - 📁 Output: /Users/abhivur/Documents/SMU_REU/project/HawkEye/path/casita-to-camp_contextual_map.png
+2025-06-15 16:05:49,012 - INFO - 📁 Parsing flight plan: casita-to-camp.kml
+2025-06-15 16:05:49,013 - INFO - 📄 Detected format: .kml
+2025-06-15 16:05:49,014 - INFO - 🔍 Found coordinates block with 654 characters
+2025-06-15 16:05:49,014 - INFO - 📊 Found 17 coordinate triplets
+2025-06-15 16:05:49,014 - INFO - ✅ Point 1: lat=36.270271, lon=-105.577320, alt=0.0
+2025-06-15 16:05:49,014 - INFO - ✅ Point 2: lat=36.270323, lon=-105.577249, alt=0.0
+2025-06-15 16:05:49,014 - INFO - ✅ Point 3: lat=36.270389, lon=-105.577194, alt=0.0
+2025-06-15 16:05:49,014 - INFO - 📍 Successfully parsed 17 waypoints from KML
+2025-06-15 16:05:49,014 - INFO - 🚁 Starting Flight Context Map Generation with GPS Coordinates
+2025-06-15 16:05:49,014 - INFO - ======================================================================
+2025-06-15 16:05:49,014 - INFO - 📁 Parsing flight plan: casita-to-camp.kml
+2025-06-15 16:05:49,014 - INFO - 📄 Detected format: .kml
+2025-06-15 16:05:49,014 - INFO - 🔍 Found coordinates block with 654 characters
+2025-06-15 16:05:49,015 - INFO - 📊 Found 17 coordinate triplets
+2025-06-15 16:05:49,015 - INFO - ✅ Point 1: lat=36.270271, lon=-105.577320, alt=0.0
+2025-06-15 16:05:49,015 - INFO - ✅ Point 2: lat=36.270323, lon=-105.577249, alt=0.0
+2025-06-15 16:05:49,015 - INFO - ✅ Point 3: lat=36.270389, lon=-105.577194, alt=0.0
+2025-06-15 16:05:49,015 - INFO - 📍 Successfully parsed 17 waypoints from KML
+2025-06-15 16:05:49,015 - INFO - ✅ Parsed flight plan: 17 waypoints
+2025-06-15 16:05:49,163 - INFO - ✅ QGIS initialized successfully
+2025-06-15 16:05:49,163 - INFO - 🗺️  Generating contextual map for flight plan: casita-to-camp
+2025-06-15 16:05:49,163 - INFO - 📍 Flight area: 17 waypoints
+2025-06-15 16:05:49,166 - INFO - 📊 GPS coordinates exported to: /Users/abhivur/Documents/SMU_REU/project/HawkEye/path/casita-to-camp_gps_coordinates.csv
+2025-06-15 16:05:49,166 - INFO - 🔍 Map extent: <QgsRectangle: -105.58473373415779406 36.26515217224389431, -105.57020717904501339 36.27686388395560613>
+2025-06-15 16:05:49,167 - WARNING - ❌ Failed to add OpenStreetMap layer
+2025-06-15 16:05:49,169 - INFO - ✅ Added waypoints layer with 17 points
+2025-06-15 16:05:49,169 - INFO - ✅ Added flight path layer
+2025-06-15 16:05:49,273 - INFO - 🖼️  Map rendered: 2048x1536 @ 300 DPI
+2025-06-15 16:05:49,273 - INFO - ✅ Map saved: /Users/abhivur/Documents/SMU_REU/project/HawkEye/path/casita-to-camp_contextual_map.png
+2025-06-15 16:05:49,273 - INFO - 🎉 SUCCESS! Contextual map with GPS coordinates generated
+2025-06-15 16:05:49,273 - INFO - 📁 Output: /Users/abhivur/Documents/SMU_REU/project/HawkEye/path/casita-to-camp_contextual_map.png
+2025-06-15 16:07:05,795 - INFO - 📁 Parsing flight plan: casita-to-camp.kml
+2025-06-15 16:07:05,795 - INFO - 📄 Detected format: .kml
+2025-06-15 16:07:05,796 - INFO - 🔍 Found coordinates block with 654 characters
+2025-06-15 16:07:05,796 - INFO - 📊 Found 17 coordinate triplets
+2025-06-15 16:07:05,796 - INFO - ✅ Point 1: lat=36.270271, lon=-105.577320, alt=0.0
+2025-06-15 16:07:05,796 - INFO - ✅ Point 2: lat=36.270323, lon=-105.577249, alt=0.0
+2025-06-15 16:07:05,796 - INFO - ✅ Point 3: lat=36.270389, lon=-105.577194, alt=0.0
+2025-06-15 16:07:05,796 - INFO - 📍 Successfully parsed 17 waypoints from KML
+2025-06-15 16:07:05,796 - INFO - 🚁 Starting Flight Context Map Generation with GPS Coordinates
+2025-06-15 16:07:05,797 - INFO - ======================================================================
+2025-06-15 16:07:05,797 - INFO - 📁 Parsing flight plan: casita-to-camp.kml
+2025-06-15 16:07:05,797 - INFO - 📄 Detected format: .kml
+2025-06-15 16:07:05,797 - INFO - 🔍 Found coordinates block with 654 characters
+2025-06-15 16:07:05,797 - INFO - 📊 Found 17 coordinate triplets
+2025-06-15 16:07:05,797 - INFO - ✅ Point 1: lat=36.270271, lon=-105.577320, alt=0.0
+2025-06-15 16:07:05,797 - INFO - ✅ Point 2: lat=36.270323, lon=-105.577249, alt=0.0
+2025-06-15 16:07:05,797 - INFO - ✅ Point 3: lat=36.270389, lon=-105.577194, alt=0.0
+2025-06-15 16:07:05,797 - INFO - 📍 Successfully parsed 17 waypoints from KML
+2025-06-15 16:07:05,797 - INFO - ✅ Parsed flight plan: 17 waypoints
+2025-06-15 16:07:05,940 - INFO - ✅ QGIS initialized successfully
+2025-06-15 16:07:05,940 - INFO - 🗺️  Generating contextual map for flight plan: casita-to-camp
+2025-06-15 16:07:05,940 - INFO - 📍 Flight area: 17 waypoints
+2025-06-15 16:07:05,944 - INFO - 📊 GPS coordinates exported to: /Users/abhivur/Documents/SMU_REU/project/HawkEye/path/casita-to-camp_gps_coordinates.csv
+2025-06-15 16:07:05,944 - INFO - 🔍 Map extent: <QgsRectangle: -105.58473373415779406 36.26515217224389431, -105.57020717904501339 36.27686388395560613>
+2025-06-15 16:07:05,949 - ERROR - ❌ Error generating map: 'QGISMapGenerator' object has no attribute '_add_base_layers'
+2025-06-15 16:08:24,354 - INFO - 📁 Parsing flight plan: casita-to-camp.kml
+2025-06-15 16:08:24,355 - INFO - 📄 Detected format: .kml
+2025-06-15 16:08:24,357 - INFO - 🔍 Found coordinates block with 654 characters
+2025-06-15 16:08:24,357 - INFO - 📊 Found 17 coordinate triplets
+2025-06-15 16:08:24,357 - INFO - ✅ Point 1: lat=36.270271, lon=-105.577320, alt=0.0
+2025-06-15 16:08:24,357 - INFO - ✅ Point 2: lat=36.270323, lon=-105.577249, alt=0.0
+2025-06-15 16:08:24,357 - INFO - ✅ Point 3: lat=36.270389, lon=-105.577194, alt=0.0
+2025-06-15 16:08:24,357 - INFO - 📍 Successfully parsed 17 waypoints from KML
+2025-06-15 16:08:24,357 - INFO - 🚁 Starting Flight Context Map Generation with GPS Coordinates
+2025-06-15 16:08:24,357 - INFO - ======================================================================
+2025-06-15 16:08:24,357 - INFO - 📁 Parsing flight plan: casita-to-camp.kml
+2025-06-15 16:08:24,357 - INFO - 📄 Detected format: .kml
+2025-06-15 16:08:24,358 - INFO - 🔍 Found coordinates block with 654 characters
+2025-06-15 16:08:24,358 - INFO - 📊 Found 17 coordinate triplets
+2025-06-15 16:08:24,358 - INFO - ✅ Point 1: lat=36.270271, lon=-105.577320, alt=0.0
+2025-06-15 16:08:24,358 - INFO - ✅ Point 2: lat=36.270323, lon=-105.577249, alt=0.0
+2025-06-15 16:08:24,358 - INFO - ✅ Point 3: lat=36.270389, lon=-105.577194, alt=0.0
+2025-06-15 16:08:24,358 - INFO - 📍 Successfully parsed 17 waypoints from KML
+2025-06-15 16:08:24,358 - INFO - ✅ Parsed flight plan: 17 waypoints
+2025-06-15 16:08:24,573 - INFO - ✅ QGIS initialized successfully
+2025-06-15 16:08:24,574 - INFO - 🗺️  Generating contextual map for flight plan: casita-to-camp
+2025-06-15 16:08:24,574 - INFO - 📍 Flight area: 17 waypoints
+2025-06-15 16:08:24,581 - INFO - 📊 GPS coordinates exported to: /Users/abhivur/Documents/SMU_REU/project/HawkEye/path/casita-to-camp_gps_coordinates.csv
+2025-06-15 16:08:24,582 - INFO - 🔍 Map extent: <QgsRectangle: -105.58473373415779406 36.26515217224389431, -105.57020717904501339 36.27686388395560613>
+2025-06-15 16:08:24,584 - WARNING - ❌ Failed to add OpenStreetMap layer
+2025-06-15 16:08:24,594 - INFO - ✅ Added waypoints layer with 17 points
+2025-06-15 16:08:24,596 - INFO - ✅ Added flight path layer
+2025-06-15 16:08:24,724 - INFO - 🖼️  Map rendered: 2048x1536 @ 300 DPI
+2025-06-15 16:08:24,725 - INFO - ✅ Map saved: /Users/abhivur/Documents/SMU_REU/project/HawkEye/path/casita-to-camp_contextual_map.png
+2025-06-15 16:08:24,725 - INFO - 🎉 SUCCESS! Contextual map with GPS coordinates generated
+2025-06-15 16:08:24,725 - INFO - 📁 Output: /Users/abhivur/Documents/SMU_REU/project/HawkEye/path/casita-to-camp_contextual_map.png
+2025-06-15 16:09:24,765 - INFO - 📁 Parsing flight plan: casita-to-camp.kml
+2025-06-15 16:09:24,766 - INFO - 📄 Detected format: .kml
+2025-06-15 16:09:24,767 - INFO - 🔍 Found coordinates block with 654 characters
+2025-06-15 16:09:24,767 - INFO - 📊 Found 17 coordinate triplets
+2025-06-15 16:09:24,767 - INFO - ✅ Point 1: lat=36.270271, lon=-105.577320, alt=0.0
+2025-06-15 16:09:24,767 - INFO - ✅ Point 2: lat=36.270323, lon=-105.577249, alt=0.0
+2025-06-15 16:09:24,767 - INFO - ✅ Point 3: lat=36.270389, lon=-105.577194, alt=0.0
+2025-06-15 16:09:24,767 - INFO - 📍 Successfully parsed 17 waypoints from KML
+2025-06-15 16:09:24,767 - INFO - 🚁 Starting Flight Context Map Generation with GPS Coordinates
+2025-06-15 16:09:24,767 - INFO - ======================================================================
+2025-06-15 16:09:24,767 - INFO - 📁 Parsing flight plan: casita-to-camp.kml
+2025-06-15 16:09:24,767 - INFO - 📄 Detected format: .kml
+2025-06-15 16:09:24,767 - INFO - 🔍 Found coordinates block with 654 characters
+2025-06-15 16:09:24,767 - INFO - 📊 Found 17 coordinate triplets
+2025-06-15 16:09:24,768 - INFO - ✅ Point 1: lat=36.270271, lon=-105.577320, alt=0.0
+2025-06-15 16:09:24,768 - INFO - ✅ Point 2: lat=36.270323, lon=-105.577249, alt=0.0
+2025-06-15 16:09:24,768 - INFO - ✅ Point 3: lat=36.270389, lon=-105.577194, alt=0.0
+2025-06-15 16:09:24,768 - INFO - 📍 Successfully parsed 17 waypoints from KML
+2025-06-15 16:09:24,768 - INFO - ✅ Parsed flight plan: 17 waypoints
+2025-06-15 16:09:24,910 - INFO - ✅ QGIS initialized successfully
+2025-06-15 16:09:24,910 - INFO - 🗺️  Generating contextual map for flight plan: casita-to-camp
+2025-06-15 16:09:24,910 - INFO - 📍 Flight area: 17 waypoints
+2025-06-15 16:09:24,913 - INFO - 📊 GPS coordinates exported to: /Users/abhivur/Documents/SMU_REU/project/HawkEye/path/casita-to-camp_gps_coordinates.csv
+2025-06-15 16:09:24,913 - INFO - 🔍 Map extent: <QgsRectangle: -105.58473373415779406 36.26515217224389431, -105.57020717904501339 36.27686388395560613>
+2025-06-15 16:09:24,914 - WARNING - ❌ Failed to add OpenStreetMap layer
+2025-06-15 16:09:24,916 - INFO - ✅ Added waypoints layer with 17 points
+2025-06-15 16:09:24,916 - INFO - ✅ Added flight path layer
+2025-06-15 16:09:25,020 - INFO - 🖼️  Map rendered: 2048x1536 @ 300 DPI
+2025-06-15 16:09:25,020 - INFO - ✅ Map saved: /Users/abhivur/Documents/SMU_REU/project/HawkEye/path/casita-to-camp_contextual_map.png
+2025-06-15 16:09:25,020 - INFO - 🎉 SUCCESS! Contextual map with GPS coordinates generated
+2025-06-15 16:09:25,021 - INFO - 📁 Output: /Users/abhivur/Documents/SMU_REU/project/HawkEye/path/casita-to-camp_contextual_map.png
+2025-06-15 16:11:26,148 - INFO - 📁 Parsing flight plan: casita-to-camp.kml
+2025-06-15 16:11:26,148 - INFO - 📄 Detected format: .kml
+2025-06-15 16:11:26,150 - INFO - 🔍 Found coordinates block with 654 characters
+2025-06-15 16:11:26,150 - INFO - 📊 Found 17 coordinate triplets
+2025-06-15 16:11:26,150 - INFO - ✅ Point 1: lat=36.270271, lon=-105.577320, alt=0.0
+2025-06-15 16:11:26,150 - INFO - ✅ Point 2: lat=36.270323, lon=-105.577249, alt=0.0
+2025-06-15 16:11:26,150 - INFO - ✅ Point 3: lat=36.270389, lon=-105.577194, alt=0.0
+2025-06-15 16:11:26,150 - INFO - 📍 Successfully parsed 17 waypoints from KML
+2025-06-15 16:11:26,150 - INFO - 🚁 Starting Flight Context Map Generation with GPS Coordinates
+2025-06-15 16:11:26,150 - INFO - ======================================================================
+2025-06-15 16:11:26,150 - INFO - 📁 Parsing flight plan: casita-to-camp.kml
+2025-06-15 16:11:26,150 - INFO - 📄 Detected format: .kml
+2025-06-15 16:11:26,151 - INFO - 🔍 Found coordinates block with 654 characters
+2025-06-15 16:11:26,151 - INFO - 📊 Found 17 coordinate triplets
+2025-06-15 16:11:26,151 - INFO - ✅ Point 1: lat=36.270271, lon=-105.577320, alt=0.0
+2025-06-15 16:11:26,151 - INFO - ✅ Point 2: lat=36.270323, lon=-105.577249, alt=0.0
+2025-06-15 16:11:26,151 - INFO - ✅ Point 3: lat=36.270389, lon=-105.577194, alt=0.0
+2025-06-15 16:11:26,151 - INFO - 📍 Successfully parsed 17 waypoints from KML
+2025-06-15 16:11:26,151 - INFO - ✅ Parsed flight plan: 17 waypoints
+2025-06-15 16:11:26,321 - INFO - ✅ QGIS initialized successfully
+2025-06-15 16:11:26,321 - INFO - 🗺️  Generating contextual map for flight plan: casita-to-camp
+2025-06-15 16:11:26,321 - INFO - 📍 Flight area: 17 waypoints
+2025-06-15 16:11:26,326 - INFO - 📊 GPS coordinates exported to: /Users/abhivur/Documents/SMU_REU/project/HawkEye/path/casita-to-camp_gps_coordinates.csv
+2025-06-15 16:11:26,326 - INFO - 🔍 Map extent: <QgsRectangle: -105.58473373415779406 36.26515217224389431, -105.57020717904501339 36.27686388395560613>
+2025-06-15 16:11:26,327 - WARNING - ❌ Failed to add OpenStreetMap layer
+2025-06-15 16:11:26,331 - INFO - ✅ Added waypoints layer with 17 points
+2025-06-15 16:11:26,331 - INFO - ✅ Added flight path layer
+2025-06-15 16:11:26,439 - INFO - 🖼️  Map rendered: 2048x1536 @ 300 DPI
+2025-06-15 16:11:26,440 - INFO - ✅ Map saved: /Users/abhivur/Documents/SMU_REU/project/HawkEye/path/casita-to-camp_contextual_map.png
+2025-06-15 16:11:26,440 - INFO - 🎉 SUCCESS! Contextual map with GPS coordinates generated
+2025-06-15 16:11:26,440 - INFO - 📁 Output: /Users/abhivur/Documents/SMU_REU/project/HawkEye/path/casita-to-camp_contextual_map.png
+2025-06-15 16:13:36,858 - INFO - 📁 Parsing flight plan: casita-to-camp.kml
+2025-06-15 16:13:36,858 - INFO - 📄 Detected format: .kml
+2025-06-15 16:13:36,859 - INFO - 🔍 Found coordinates block with 654 characters
+2025-06-15 16:13:36,859 - INFO - 📊 Found 17 coordinate triplets
+2025-06-15 16:13:36,859 - INFO - ✅ Point 1: lat=36.270271, lon=-105.577320, alt=0.0
+2025-06-15 16:13:36,859 - INFO - ✅ Point 2: lat=36.270323, lon=-105.577249, alt=0.0
+2025-06-15 16:13:36,859 - INFO - ✅ Point 3: lat=36.270389, lon=-105.577194, alt=0.0
+2025-06-15 16:13:36,859 - INFO - 📍 Successfully parsed 17 waypoints from KML
+2025-06-15 16:13:36,860 - INFO - 🚁 Starting Flight Context Map Generation with GPS Coordinates
+2025-06-15 16:13:36,860 - INFO - ======================================================================
+2025-06-15 16:13:36,860 - INFO - 📁 Parsing flight plan: casita-to-camp.kml
+2025-06-15 16:13:36,860 - INFO - 📄 Detected format: .kml
+2025-06-15 16:13:36,860 - INFO - 🔍 Found coordinates block with 654 characters
+2025-06-15 16:13:36,860 - INFO - 📊 Found 17 coordinate triplets
+2025-06-15 16:13:36,860 - INFO - ✅ Point 1: lat=36.270271, lon=-105.577320, alt=0.0
+2025-06-15 16:13:36,860 - INFO - ✅ Point 2: lat=36.270323, lon=-105.577249, alt=0.0
+2025-06-15 16:13:36,860 - INFO - ✅ Point 3: lat=36.270389, lon=-105.577194, alt=0.0
+2025-06-15 16:13:36,860 - INFO - 📍 Successfully parsed 17 waypoints from KML
+2025-06-15 16:13:36,860 - INFO - ✅ Parsed flight plan: 17 waypoints
+2025-06-15 16:13:37,000 - INFO - ✅ QGIS initialized successfully
+2025-06-15 16:13:37,000 - INFO - 🗺️  Generating contextual map for flight plan: casita-to-camp
+2025-06-15 16:13:37,000 - INFO - 📍 Flight area: 17 waypoints
+2025-06-15 16:13:37,003 - INFO - 📊 GPS coordinates exported to: /Users/abhivur/Documents/SMU_REU/project/HawkEye/path/casita-to-camp_gps_coordinates.csv
+2025-06-15 16:13:37,004 - INFO - 🔍 Map extent: <QgsRectangle: -105.58473373415779406 36.26515217224389431, -105.57020717904501339 36.27686388395560613>
+2025-06-15 16:13:37,004 - WARNING - ❌ Failed to add OpenStreetMap layer
+2025-06-15 16:13:37,006 - INFO - ✅ Added waypoints layer with 17 points
+2025-06-15 16:13:37,006 - INFO - ✅ Added flight path layer
+2025-06-15 16:13:37,111 - INFO - 🖼️  Map rendered: 2048x1536 @ 300 DPI
+2025-06-15 16:13:37,111 - INFO - ✅ Map saved: /Users/abhivur/Documents/SMU_REU/project/HawkEye/path/casita-to-camp_contextual_map.png
+2025-06-15 16:13:37,111 - INFO - 🎉 SUCCESS! Contextual map with GPS coordinates generated
+2025-06-15 16:13:37,111 - INFO - 📁 Output: /Users/abhivur/Documents/SMU_REU/project/HawkEye/path/casita-to-camp_contextual_map.png
+2025-06-15 16:13:50,565 - INFO - 📁 Parsing flight plan: casita-to-camp.kml
+2025-06-15 16:13:50,565 - INFO - 📄 Detected format: .kml
+2025-06-15 16:13:50,566 - INFO - 🔍 Found coordinates block with 654 characters
+2025-06-15 16:13:50,566 - INFO - 📊 Found 17 coordinate triplets
+2025-06-15 16:13:50,566 - INFO - ✅ Point 1: lat=36.270271, lon=-105.577320, alt=0.0
+2025-06-15 16:13:50,566 - INFO - ✅ Point 2: lat=36.270323, lon=-105.577249, alt=0.0
+2025-06-15 16:13:50,566 - INFO - ✅ Point 3: lat=36.270389, lon=-105.577194, alt=0.0
+2025-06-15 16:13:50,566 - INFO - 📍 Successfully parsed 17 waypoints from KML
+2025-06-15 16:13:50,567 - INFO - 🚁 Starting Flight Context Map Generation with GPS Coordinates
+2025-06-15 16:13:50,567 - INFO - ======================================================================
+2025-06-15 16:13:50,567 - INFO - 📁 Parsing flight plan: casita-to-camp.kml
+2025-06-15 16:13:50,567 - INFO - 📄 Detected format: .kml
+2025-06-15 16:13:50,567 - INFO - 🔍 Found coordinates block with 654 characters
+2025-06-15 16:13:50,567 - INFO - 📊 Found 17 coordinate triplets
+2025-06-15 16:13:50,567 - INFO - ✅ Point 1: lat=36.270271, lon=-105.577320, alt=0.0
+2025-06-15 16:13:50,567 - INFO - ✅ Point 2: lat=36.270323, lon=-105.577249, alt=0.0
+2025-06-15 16:13:50,567 - INFO - ✅ Point 3: lat=36.270389, lon=-105.577194, alt=0.0
+2025-06-15 16:13:50,567 - INFO - 📍 Successfully parsed 17 waypoints from KML
+2025-06-15 16:13:50,567 - INFO - ✅ Parsed flight plan: 17 waypoints
+2025-06-15 16:13:50,698 - INFO - ✅ QGIS initialized successfully
+2025-06-15 16:13:50,698 - INFO - 🗺️  Generating contextual map for flight plan: casita-to-camp
+2025-06-15 16:13:50,698 - INFO - 📍 Flight area: 17 waypoints
+2025-06-15 16:13:50,702 - INFO - 📊 GPS coordinates exported to: /Users/abhivur/Documents/SMU_REU/project/HawkEye/path/casita-to-camp_gps_coordinates.csv
+2025-06-15 16:13:50,702 - INFO - 🔍 Map extent: <QgsRectangle: -105.58473373415779406 36.26515217224389431, -105.57020717904501339 36.27686388395560613>
+2025-06-15 16:13:50,704 - INFO - ✅ Added waypoints layer with 17 points
+2025-06-15 16:13:50,704 - INFO - ✅ Added flight path layer
+2025-06-15 16:13:50,810 - INFO - 🖼️  Map rendered: 2048x1536 @ 300 DPI
+2025-06-15 16:13:50,811 - INFO - ✅ Map saved: /Users/abhivur/Documents/SMU_REU/project/HawkEye/path/casita-to-camp_contextual_map.png
+2025-06-15 16:13:50,811 - INFO - 🎉 SUCCESS! Contextual map with GPS coordinates generated
+2025-06-15 16:13:50,811 - INFO - 📁 Output: /Users/abhivur/Documents/SMU_REU/project/HawkEye/path/casita-to-camp_contextual_map.png
+2025-06-15 16:16:07,212 - INFO - 📁 Parsing flight plan: casita-to-camp.kml
+2025-06-15 16:16:07,212 - INFO - 📄 Detected format: .kml
+2025-06-15 16:16:07,214 - INFO - 🔍 Found coordinates block with 654 characters
+2025-06-15 16:16:07,214 - INFO - 📊 Found 17 coordinate triplets
+2025-06-15 16:16:07,214 - INFO - ✅ Point 1: lat=36.270271, lon=-105.577320, alt=0.0
+2025-06-15 16:16:07,214 - INFO - ✅ Point 2: lat=36.270323, lon=-105.577249, alt=0.0
+2025-06-15 16:16:07,214 - INFO - ✅ Point 3: lat=36.270389, lon=-105.577194, alt=0.0
+2025-06-15 16:16:07,214 - INFO - 📍 Successfully parsed 17 waypoints from KML
+2025-06-15 16:16:07,214 - INFO - 🚁 Starting Flight Context Map Generation with GPS Coordinates
+2025-06-15 16:16:07,215 - INFO - ======================================================================
+2025-06-15 16:16:07,215 - INFO - 📁 Parsing flight plan: casita-to-camp.kml
+2025-06-15 16:16:07,215 - INFO - 📄 Detected format: .kml
+2025-06-15 16:16:07,215 - INFO - 🔍 Found coordinates block with 654 characters
+2025-06-15 16:16:07,215 - INFO - 📊 Found 17 coordinate triplets
+2025-06-15 16:16:07,215 - INFO - ✅ Point 1: lat=36.270271, lon=-105.577320, alt=0.0
+2025-06-15 16:16:07,215 - INFO - ✅ Point 2: lat=36.270323, lon=-105.577249, alt=0.0
+2025-06-15 16:16:07,215 - INFO - ✅ Point 3: lat=36.270389, lon=-105.577194, alt=0.0
+2025-06-15 16:16:07,215 - INFO - 📍 Successfully parsed 17 waypoints from KML
+2025-06-15 16:16:07,215 - INFO - ✅ Parsed flight plan: 17 waypoints
+2025-06-15 16:16:07,626 - INFO - ✅ QGIS initialized successfully
+2025-06-15 16:16:07,626 - INFO - 🗺️  Generating contextual map for flight plan: casita-to-camp
+2025-06-15 16:16:07,626 - INFO - 📍 Flight area: 17 waypoints
+2025-06-15 16:16:07,631 - INFO - 📊 GPS coordinates exported to: /Users/abhivur/Documents/SMU_REU/project/HawkEye/path/casita-to-camp_gps_coordinates.csv
+2025-06-15 16:16:07,632 - INFO - 🔍 Map extent: <QgsRectangle: -105.58473373415779406 36.26515217224389431, -105.57020717904501339 36.27686388395560613>
+2025-06-15 16:16:07,641 - INFO - ✅ Added OpenStreetMap base layer
+2025-06-15 16:16:07,649 - INFO - ✅ Added waypoints layer with 17 points
+2025-06-15 16:16:07,650 - INFO - ✅ Added flight path layer
+2025-06-15 16:16:15,759 - INFO - 🖼️  Map rendered: 2048x1536 @ 300 DPI
+2025-06-15 16:16:15,761 - INFO - ✅ Map saved: /Users/abhivur/Documents/SMU_REU/project/HawkEye/path/casita-to-camp_contextual_map.png
+2025-06-15 16:16:15,761 - INFO - 🎉 SUCCESS! Contextual map with GPS coordinates generated
+2025-06-15 16:16:15,761 - INFO - 📁 Output: /Users/abhivur/Documents/SMU_REU/project/HawkEye/path/casita-to-camp_contextual_map.png
