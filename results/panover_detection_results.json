@@ -1,0 +1,1334 @@
+[
+  {
+    "frame_id": 1,
+    "timestamp": 1.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\panover_frames\\frame_000000.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 2,
+    "timestamp": 2.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\panover_frames\\frame_000030.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 3,
+    "timestamp": 3.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\panover_frames\\frame_000060.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 4,
+    "timestamp": 4.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\panover_frames\\frame_000090.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 5,
+    "timestamp": 5.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\panover_frames\\frame_000120.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 6,
+    "timestamp": 6.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\panover_frames\\frame_000150.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 7,
+    "timestamp": 7.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\panover_frames\\frame_000180.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 8,
+    "timestamp": 8.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\panover_frames\\frame_000210.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 9,
+    "timestamp": 9.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\panover_frames\\frame_000240.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 10,
+    "timestamp": 10.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\panover_frames\\frame_000270.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 11,
+    "timestamp": 11.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\panover_frames\\frame_000300.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 12,
+    "timestamp": 12.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\panover_frames\\frame_000330.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": [
+      {
+        "label": "car",
+        "confidence": 0.2659427523612976,
+        "bbox": {
+          "xmin": 652.0628662109375,
+          "ymin": 498.861083984375,
+          "xmax": 705.6553955078125,
+          "ymax": 533.4169921875
+        },
+        "area": 1851.9384765625
+      }
+    ]
+  },
+  {
+    "frame_id": 13,
+    "timestamp": 13.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\panover_frames\\frame_000360.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 14,
+    "timestamp": 14.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\panover_frames\\frame_000390.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 15,
+    "timestamp": 15.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\panover_frames\\frame_000420.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": []
+  },
+  {
+    "frame_id": 16,
+    "timestamp": 16.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\panover_frames\\frame_000450.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": [
+      {
+        "label": "car",
+        "confidence": 0.42660850286483765,
+        "bbox": {
+          "xmin": 200.04116821289062,
+          "ymin": 665.3929443359375,
+          "xmax": 254.30599975585938,
+          "ymax": 711.8741455078125
+        },
+        "area": 2522.29443359375
+      },
+      {
+        "label": "person",
+        "confidence": 0.4094754755496979,
+        "bbox": {
+          "xmin": 960.3939208984375,
+          "ymin": 373.2621765136719,
+          "xmax": 996.8328857421875,
+          "ymax": 448.6294250488281
+        },
+        "area": 2746.304443359375
+      },
+      {
+        "label": "fire hydrant",
+        "confidence": 0.3470994532108307,
+        "bbox": {
+          "xmin": 1126.644287109375,
+          "ymin": 579.930908203125,
+          "xmax": 1182.991943359375,
+          "ymax": 685.598876953125
+        },
+        "area": 5954.142578125
+      }
+    ]
+  },
+  {
+    "frame_id": 17,
+    "timestamp": 17.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\panover_frames\\frame_000480.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": [
+      {
+        "label": "umbrella",
+        "confidence": 0.6820265054702759,
+        "bbox": {
+          "xmin": 597.0814208984375,
+          "ymin": 344.22064208984375,
+          "xmax": 765.5677490234375,
+          "ymax": 404.75262451171875
+        },
+        "area": 10198.8115234375
+      },
+      {
+        "label": "person",
+        "confidence": 0.6457328200340271,
+        "bbox": {
+          "xmin": 564.6416015625,
+          "ymin": 433.81524658203125,
+          "xmax": 609.8057861328125,
+          "ymax": 529.73046875
+        },
+        "area": 4331.9326171875
+      },
+      {
+        "label": "chair",
+        "confidence": 0.2999071776866913,
+        "bbox": {
+          "xmin": 685.0391845703125,
+          "ymin": 469.37701416015625,
+          "xmax": 726.8734130859375,
+          "ymax": 516.7770385742188
+        },
+        "area": 1982.9434814453125
+      }
+    ]
+  },
+  {
+    "frame_id": 18,
+    "timestamp": 18.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\panover_frames\\frame_000510.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": [
+      {
+        "label": "chair",
+        "confidence": 0.7015734314918518,
+        "bbox": {
+          "xmin": 720.1746826171875,
+          "ymin": 484.36358642578125,
+          "xmax": 787.3828125,
+          "ymax": 564.2639770507812
+        },
+        "area": 5369.9560546875
+      },
+      {
+        "label": "chair",
+        "confidence": 0.6028658747673035,
+        "bbox": {
+          "xmin": 794.087890625,
+          "ymin": 484.37109375,
+          "xmax": 845.827880859375,
+          "ymax": 568.03759765625
+        },
+        "area": 4328.904296875
+      },
+      {
+        "label": "umbrella",
+        "confidence": 0.5077903270721436,
+        "bbox": {
+          "xmin": 693.920166015625,
+          "ymin": 345.849365234375,
+          "xmax": 884.165283203125,
+          "ymax": 490.7991943359375
+        },
+        "area": 27575.998046875
+      },
+      {
+        "label": "chair",
+        "confidence": 0.49869439005851746,
+        "bbox": {
+          "xmin": 659.705078125,
+          "ymin": 484.802978515625,
+          "xmax": 711.9287109375,
+          "ymax": 545.9522705078125
+        },
+        "area": 3193.438232421875
+      },
+      {
+        "label": "person",
+        "confidence": 0.4089377522468567,
+        "bbox": {
+          "xmin": 659.0238647460938,
+          "ymin": 440.1952819824219,
+          "xmax": 718.0553588867188,
+          "ymax": 546.295654296875
+        },
+        "area": 6263.263671875
+      },
+      {
+        "label": "chair",
+        "confidence": 0.3790667653083801,
+        "bbox": {
+          "xmin": 534.682861328125,
+          "ymin": 357.20233154296875,
+          "xmax": 587.063232421875,
+          "ymax": 419.04302978515625
+        },
+        "area": 3239.23876953125
+      },
+      {
+        "label": "chair",
+        "confidence": 0.3473511338233948,
+        "bbox": {
+          "xmin": 580.3319091796875,
+          "ymin": 366.8713684082031,
+          "xmax": 619.5948486328125,
+          "ymax": 421.0365295410156
+        },
+        "area": 2126.683349609375
+      },
+      {
+        "label": "person",
+        "confidence": 0.34136366844177246,
+        "bbox": {
+          "xmin": 826.58056640625,
+          "ymin": 438.6116943359375,
+          "xmax": 896.154541015625,
+          "ymax": 529.0103759765625
+        },
+        "area": 6289.3955078125
+      }
+    ]
+  },
+  {
+    "frame_id": 19,
+    "timestamp": 19.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\panover_frames\\frame_000540.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": [
+      {
+        "label": "person",
+        "confidence": 0.7624993920326233,
+        "bbox": {
+          "xmin": 1180.135009765625,
+          "ymin": 489.0994873046875,
+          "xmax": 1260.977783203125,
+          "ymax": 613.748291015625
+        },
+        "area": 10076.955078125
+      },
+      {
+        "label": "chair",
+        "confidence": 0.6442870497703552,
+        "bbox": {
+          "xmin": 1090.8359375,
+          "ymin": 393.668212890625,
+          "xmax": 1141.603515625,
+          "ymax": 455.24517822265625
+        },
+        "area": 3126.11328125
+      },
+      {
+        "label": "chair",
+        "confidence": 0.5530900359153748,
+        "bbox": {
+          "xmin": 1152.8411865234375,
+          "ymin": 394.4814453125,
+          "xmax": 1217.8748779296875,
+          "ymax": 454.601806640625
+        },
+        "area": 3909.84912109375
+      },
+      {
+        "label": "chair",
+        "confidence": 0.33859074115753174,
+        "bbox": {
+          "xmin": 1177.77880859375,
+          "ymin": 536.4436645507812,
+          "xmax": 1228.625,
+          "ymax": 611.9368286132812
+        },
+        "area": 3838.539794921875
+      },
+      {
+        "label": "chair",
+        "confidence": 0.28845158219337463,
+        "bbox": {
+          "xmin": 1057.0184326171875,
+          "ymin": 395.5263671875,
+          "xmax": 1096.5831298828125,
+          "ymax": 438.5740966796875
+        },
+        "area": 1703.17041015625
+      }
+    ]
+  },
+  {
+    "frame_id": 20,
+    "timestamp": 20.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\panover_frames\\frame_000570.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": [
+      {
+        "label": "chair",
+        "confidence": 0.6480820178985596,
+        "bbox": {
+          "xmin": 1189.17578125,
+          "ymin": 409.0137939453125,
+          "xmax": 1255.76220703125,
+          "ymax": 474.983642578125
+        },
+        "area": 4392.6962890625
+      },
+      {
+        "label": "chair",
+        "confidence": 0.45739999413490295,
+        "bbox": {
+          "xmin": 1228.597412109375,
+          "ymin": 571.8040771484375,
+          "xmax": 1279.513916015625,
+          "ymax": 651.2152099609375
+        },
+        "area": 4043.337158203125
+      },
+      {
+        "label": "person",
+        "confidence": 0.421880841255188,
+        "bbox": {
+          "xmin": 1236.10888671875,
+          "ymin": 522.0503540039062,
+          "xmax": 1279.525146484375,
+          "ymax": 591.5228881835938
+        },
+        "area": 3016.237548828125
+      },
+      {
+        "label": "chair",
+        "confidence": 0.3797663450241089,
+        "bbox": {
+          "xmin": 1123.7769775390625,
+          "ymin": 409.37615966796875,
+          "xmax": 1171.3204345703125,
+          "ymax": 475.59454345703125
+        },
+        "area": 3148.2509765625
+      },
+      {
+        "label": "chair",
+        "confidence": 0.29669538140296936,
+        "bbox": {
+          "xmin": 1084.979736328125,
+          "ymin": 412.29248046875,
+          "xmax": 1132.370849609375,
+          "ymax": 469.3121337890625
+        },
+        "area": 2702.224853515625
+      }
+    ]
+  },
+  {
+    "frame_id": 21,
+    "timestamp": 21.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\panover_frames\\frame_000600.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": [
+      {
+        "label": "chair",
+        "confidence": 0.8778856992721558,
+        "bbox": {
+          "xmin": 843.2261962890625,
+          "ymin": 595.727783203125,
+          "xmax": 933.1014404296875,
+          "ymax": 698.650390625
+        },
+        "area": 9250.1943359375
+      },
+      {
+        "label": "person",
+        "confidence": 0.7710868716239929,
+        "bbox": {
+          "xmin": 757.7141723632812,
+          "ymin": 532.8084716796875,
+          "xmax": 841.6246948242188,
+          "ymax": 669.5362548828125
+        },
+        "area": 11472.8994140625
+      },
+      {
+        "label": "chair",
+        "confidence": 0.724872350692749,
+        "bbox": {
+          "xmin": 629.6640625,
+          "ymin": 419.5779724121094,
+          "xmax": 683.167236328125,
+          "ymax": 484.8887023925781
+        },
+        "area": 3494.331298828125
+      },
+      {
+        "label": "chair",
+        "confidence": 0.6728788018226624,
+        "bbox": {
+          "xmin": 691.3267211914062,
+          "ymin": 406.52490234375,
+          "xmax": 750.7333374023438,
+          "ymax": 480.585205078125
+        },
+        "area": 4399.671875
+      },
+      {
+        "label": "dining table",
+        "confidence": 0.4031955599784851,
+        "bbox": {
+          "xmin": 852.1085205078125,
+          "ymin": 552.2493896484375,
+          "xmax": 987.0633544921875,
+          "ymax": 606.3609619140625
+        },
+        "area": 7302.6181640625
+      },
+      {
+        "label": "chair",
+        "confidence": 0.3970131278038025,
+        "bbox": {
+          "xmin": 1135.0523681640625,
+          "ymin": 550.8450927734375,
+          "xmax": 1234.5697021484375,
+          "ymax": 655.0699462890625
+        },
+        "area": 10372.1796875
+      },
+      {
+        "label": "umbrella",
+        "confidence": 0.39073267579078674,
+        "bbox": {
+          "xmin": 801.780029296875,
+          "ymin": 417.0951843261719,
+          "xmax": 1039.04638671875,
+          "ymax": 579.61083984375
+        },
+        "area": 38559.49609375
+      },
+      {
+        "label": "chair",
+        "confidence": 0.33719995617866516,
+        "bbox": {
+          "xmin": 587.8408203125,
+          "ymin": 418.5653381347656,
+          "xmax": 635.40576171875,
+          "ymax": 472.3882751464844
+        },
+        "area": 2560.0849609375
+      },
+      {
+        "label": "chair",
+        "confidence": 0.3308369219303131,
+        "bbox": {
+          "xmin": 946.4827880859375,
+          "ymin": 598.322021484375,
+          "xmax": 1065.7291259765625,
+          "ymax": 719.6380615234375
+        },
+        "area": 14466.4931640625
+      },
+      {
+        "label": "chair",
+        "confidence": 0.3179384768009186,
+        "bbox": {
+          "xmin": 928.2066650390625,
+          "ymin": 594.69580078125,
+          "xmax": 1004.4776611328125,
+          "ymax": 716.48828125
+        },
+        "area": 9289.2333984375
+      },
+      {
+        "label": "chair",
+        "confidence": 0.2842668890953064,
+        "bbox": {
+          "xmin": 755.2130126953125,
+          "ymin": 584.5424194335938,
+          "xmax": 819.958984375,
+          "ymax": 666.6376342773438
+        },
+        "area": 5315.33447265625
+      }
+    ]
+  },
+  {
+    "frame_id": 22,
+    "timestamp": 22.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\panover_frames\\frame_000630.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": [
+      {
+        "label": "chair",
+        "confidence": 0.6562327146530151,
+        "bbox": {
+          "xmin": 656.6951904296875,
+          "ymin": 426.807373046875,
+          "xmax": 718.2991943359375,
+          "ymax": 515.8417358398438
+        },
+        "area": 5484.873046875
+      },
+      {
+        "label": "chair",
+        "confidence": 0.5797653198242188,
+        "bbox": {
+          "xmin": 593.4744873046875,
+          "ymin": 443.27459716796875,
+          "xmax": 642.9549560546875,
+          "ymax": 527.445068359375
+        },
+        "area": 4164.79443359375
+      },
+      {
+        "label": "chair",
+        "confidence": 0.5397642850875854,
+        "bbox": {
+          "xmin": 1144.2904052734375,
+          "ymin": 592.183349609375,
+          "xmax": 1217.2874755859375,
+          "ymax": 699.3516845703125
+        },
+        "area": 7822.974609375
+      },
+      {
+        "label": "person",
+        "confidence": 0.5372275710105896,
+        "bbox": {
+          "xmin": 737.6077880859375,
+          "ymin": 574.29931640625,
+          "xmax": 835.9288330078125,
+          "ymax": 707.42138671875
+        },
+        "area": 13088.701171875
+      },
+      {
+        "label": "umbrella",
+        "confidence": 0.4546259939670563,
+        "bbox": {
+          "xmin": 779.120361328125,
+          "ymin": 448.7126159667969,
+          "xmax": 1037.030517578125,
+          "ymax": 547.483642578125
+        },
+        "area": 25474.05078125
+      },
+      {
+        "label": "umbrella",
+        "confidence": 0.4524522125720978,
+        "bbox": {
+          "xmin": 778.9329833984375,
+          "ymin": 448.0117492675781,
+          "xmax": 1036.9677734375,
+          "ymax": 670.220703125
+        },
+        "area": 57337.640625
+      },
+      {
+        "label": "chair",
+        "confidence": 0.4342917203903198,
+        "bbox": {
+          "xmin": 827.38427734375,
+          "ymin": 646.88623046875,
+          "xmax": 930.474365234375,
+          "ymax": 720.0
+        },
+        "area": 7537.3046875
+      },
+      {
+        "label": "chair",
+        "confidence": 0.4076847434043884,
+        "bbox": {
+          "xmin": 736.8795166015625,
+          "ymin": 634.2947998046875,
+          "xmax": 801.2305908203125,
+          "ymax": 717.4522705078125
+        },
+        "area": 5351.2724609375
+      },
+      {
+        "label": "chair",
+        "confidence": 0.3419383764266968,
+        "bbox": {
+          "xmin": 785.8778686523438,
+          "ymin": 654.893798828125,
+          "xmax": 845.9015502929688,
+          "ymax": 720.0
+        },
+        "area": 3907.913818359375
+      },
+      {
+        "label": "chair",
+        "confidence": 0.32310056686401367,
+        "bbox": {
+          "xmin": 557.041748046875,
+          "ymin": 441.22705078125,
+          "xmax": 601.0694580078125,
+          "ymax": 491.50830078125
+        },
+        "area": 2213.768310546875
+      }
+    ]
+  },
+  {
+    "frame_id": 23,
+    "timestamp": 23.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\panover_frames\\frame_000660.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": [
+      {
+        "label": "umbrella",
+        "confidence": 0.8068441152572632,
+        "bbox": {
+          "xmin": 423.9541320800781,
+          "ymin": 457.57147216796875,
+          "xmax": 683.820068359375,
+          "ymax": 565.7233276367188
+        },
+        "area": 28104.982421875
+      },
+      {
+        "label": "chair",
+        "confidence": 0.7299267053604126,
+        "bbox": {
+          "xmin": 209.25717163085938,
+          "ymin": 478.82305908203125,
+          "xmax": 274.421142578125,
+          "ymax": 549.2874145507812
+        },
+        "area": 4591.7373046875
+      },
+      {
+        "label": "chair",
+        "confidence": 0.6877683401107788,
+        "bbox": {
+          "xmin": 276.6922302246094,
+          "ymin": 452.4615478515625,
+          "xmax": 343.2238464355469,
+          "ymax": 536.798095703125
+        },
+        "area": 5611.046875
+      },
+      {
+        "label": "chair",
+        "confidence": 0.668941855430603,
+        "bbox": {
+          "xmin": 989.1571655273438,
+          "ymin": 577.4368896484375,
+          "xmax": 1063.28271484375,
+          "ymax": 679.9923095703125
+        },
+        "area": 7601.97705078125
+      },
+      {
+        "label": "chair",
+        "confidence": 0.6218901872634888,
+        "bbox": {
+          "xmin": 149.528564453125,
+          "ymin": 462.279052734375,
+          "xmax": 216.28070068359375,
+          "ymax": 544.6500244140625
+        },
+        "area": 5498.4384765625
+      },
+      {
+        "label": "chair",
+        "confidence": 0.5228663682937622,
+        "bbox": {
+          "xmin": 781.64111328125,
+          "ymin": 577.9814453125,
+          "xmax": 860.449462890625,
+          "ymax": 677.633056640625
+        },
+        "area": 7853.37890625
+      },
+      {
+        "label": "person",
+        "confidence": 0.5062428712844849,
+        "bbox": {
+          "xmin": 381.98480224609375,
+          "ymin": 602.8807373046875,
+          "xmax": 452.21697998046875,
+          "ymax": 719.0565185546875
+        },
+        "area": 8159.2783203125
+      },
+      {
+        "label": "chair",
+        "confidence": 0.4153250455856323,
+        "bbox": {
+          "xmin": 577.2435302734375,
+          "ymin": 651.5016479492188,
+          "xmax": 669.9088134765625,
+          "ymax": 720.0
+        },
+        "area": 6347.41943359375
+      },
+      {
+        "label": "chair",
+        "confidence": 0.3908029794692993,
+        "bbox": {
+          "xmin": 439.2386474609375,
+          "ymin": 571.3399047851562,
+          "xmax": 502.320068359375,
+          "ymax": 666.4608764648438
+        },
+        "area": 6000.3662109375
+      },
+      {
+        "label": "person",
+        "confidence": 0.29381027817726135,
+        "bbox": {
+          "xmin": 975.084228515625,
+          "ymin": 456.3921813964844,
+          "xmax": 1016.1513671875,
+          "ymax": 541.9268798828125
+        },
+        "area": 3512.665283203125
+      },
+      {
+        "label": "dining table",
+        "confidence": 0.28975170850753784,
+        "bbox": {
+          "xmin": 486.82220458984375,
+          "ymin": 605.939453125,
+          "xmax": 636.7888793945312,
+          "ymax": 670.04443359375
+        },
+        "area": 9613.6103515625
+      }
+    ]
+  },
+  {
+    "frame_id": 24,
+    "timestamp": 24.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\panover_frames\\frame_000690.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": [
+      {
+        "label": "chair",
+        "confidence": 0.7784678339958191,
+        "bbox": {
+          "xmin": 1007.5330810546875,
+          "ymin": 581.1561279296875,
+          "xmax": 1087.6893310546875,
+          "ymax": 696.1224365234375
+        },
+        "area": 9215.2685546875
+      },
+      {
+        "label": "chair",
+        "confidence": 0.7353753447532654,
+        "bbox": {
+          "xmin": 443.15972900390625,
+          "ymin": 580.1309814453125,
+          "xmax": 509.69793701171875,
+          "ymax": 683.8245849609375
+        },
+        "area": 6899.58642578125
+      },
+      {
+        "label": "chair",
+        "confidence": 0.7220277786254883,
+        "bbox": {
+          "xmin": 208.8443603515625,
+          "ymin": 482.3791809082031,
+          "xmax": 274.30377197265625,
+          "ymax": 557.843017578125
+        },
+        "area": 4939.818359375
+      },
+      {
+        "label": "chair",
+        "confidence": 0.6924587488174438,
+        "bbox": {
+          "xmin": 797.62939453125,
+          "ymin": 586.4639892578125,
+          "xmax": 875.9454345703125,
+          "ymax": 689.0072021484375
+        },
+        "area": 8030.7783203125
+      },
+      {
+        "label": "umbrella",
+        "confidence": 0.6266718506813049,
+        "bbox": {
+          "xmin": 429.6915283203125,
+          "ymin": 462.1187744140625,
+          "xmax": 695.4854736328125,
+          "ymax": 572.5264892578125
+        },
+        "area": 29345.701171875
+      },
+      {
+        "label": "chair",
+        "confidence": 0.6152680516242981,
+        "bbox": {
+          "xmin": 283.29632568359375,
+          "ymin": 457.9884033203125,
+          "xmax": 345.22784423828125,
+          "ymax": 544.292236328125
+        },
+        "area": 5344.92724609375
+      },
+      {
+        "label": "chair",
+        "confidence": 0.5731487274169922,
+        "bbox": {
+          "xmin": 145.41348266601562,
+          "ymin": 465.73974609375,
+          "xmax": 214.176513671875,
+          "ymax": 555.0364990234375
+        },
+        "area": 6140.3154296875
+      },
+      {
+        "label": "person",
+        "confidence": 0.4588082730770111,
+        "bbox": {
+          "xmin": 386.28277587890625,
+          "ymin": 611.5825805664062,
+          "xmax": 488.58978271484375,
+          "ymax": 720.0
+        },
+        "area": 11091.861328125
+      },
+      {
+        "label": "dining table",
+        "confidence": 0.38185980916023254,
+        "bbox": {
+          "xmin": 487.68255615234375,
+          "ymin": 613.9056396484375,
+          "xmax": 644.2691040039062,
+          "ymax": 719.9261474609375
+        },
+        "area": 16601.384765625
+      },
+      {
+        "label": "person",
+        "confidence": 0.33898481726646423,
+        "bbox": {
+          "xmin": 992.2845458984375,
+          "ymin": 457.25244140625,
+          "xmax": 1033.11083984375,
+          "ymax": 549.7103271484375
+        },
+        "area": 3774.712890625
+      }
+    ]
+  },
+  {
+    "frame_id": 25,
+    "timestamp": 25.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\panover_frames\\frame_000720.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": [
+      {
+        "label": "umbrella",
+        "confidence": 0.7800275087356567,
+        "bbox": {
+          "xmin": 430.5283203125,
+          "ymin": 475.68389892578125,
+          "xmax": 707.5736083984375,
+          "ymax": 592.7255249023438
+        },
+        "area": 32425.830078125
+      },
+      {
+        "label": "person",
+        "confidence": 0.7609608173370361,
+        "bbox": {
+          "xmin": 387.085205078125,
+          "ymin": 634.1197509765625,
+          "xmax": 467.3160400390625,
+          "ymax": 720.0
+        },
+        "area": 6890.244140625
+      },
+      {
+        "label": "chair",
+        "confidence": 0.745267391204834,
+        "bbox": {
+          "xmin": 1024.91064453125,
+          "ymin": 597.0350341796875,
+          "xmax": 1109.82177734375,
+          "ymax": 717.3856201171875
+        },
+        "area": 10219.1044921875
+      },
+      {
+        "label": "chair",
+        "confidence": 0.7329635620117188,
+        "bbox": {
+          "xmin": 809.91552734375,
+          "ymin": 601.6402587890625,
+          "xmax": 891.546875,
+          "ymax": 710.101806640625
+        },
+        "area": 8853.8623046875
+      },
+      {
+        "label": "chair",
+        "confidence": 0.7152446508407593,
+        "bbox": {
+          "xmin": 206.27713012695312,
+          "ymin": 493.7852783203125,
+          "xmax": 275.2455749511719,
+          "ymax": 570.1348876953125
+        },
+        "area": 5265.7138671875
+      },
+      {
+        "label": "chair",
+        "confidence": 0.6694959998130798,
+        "bbox": {
+          "xmin": 276.98199462890625,
+          "ymin": 469.47564697265625,
+          "xmax": 344.07916259765625,
+          "ymax": 554.8350219726562
+        },
+        "area": 5727.37255859375
+      },
+      {
+        "label": "chair",
+        "confidence": 0.6008291244506836,
+        "bbox": {
+          "xmin": 138.08078002929688,
+          "ymin": 477.7996826171875,
+          "xmax": 210.70849609375,
+          "ymax": 561.606689453125
+        },
+        "area": 6086.71142578125
+      },
+      {
+        "label": "chair",
+        "confidence": 0.5203737020492554,
+        "bbox": {
+          "xmin": 1006.062255859375,
+          "ymin": 473.19927978515625,
+          "xmax": 1049.681396484375,
+          "ymax": 561.4193725585938
+        },
+        "area": 3848.084716796875
+      },
+      {
+        "label": "chair",
+        "confidence": 0.49589046835899353,
+        "bbox": {
+          "xmin": 489.87786865234375,
+          "ymin": 633.0072631835938,
+          "xmax": 659.7136840820312,
+          "ymax": 719.8075561523438
+        },
+        "area": 14741.798828125
+      },
+      {
+        "label": "chair",
+        "confidence": 0.47749319672584534,
+        "bbox": {
+          "xmin": 445.45574951171875,
+          "ymin": 596.87060546875,
+          "xmax": 529.9526977539062,
+          "ymax": 700.851806640625
+        },
+        "area": 8786.09375
+      },
+      {
+        "label": "chair",
+        "confidence": 0.3864116072654724,
+        "bbox": {
+          "xmin": 654.249267578125,
+          "ymin": 607.4760131835938,
+          "xmax": 738.34326171875,
+          "ymax": 717.2677612304688
+        },
+        "area": 9232.826171875
+      },
+      {
+        "label": "dining table",
+        "confidence": 0.30265524983406067,
+        "bbox": {
+          "xmin": 490.9862060546875,
+          "ymin": 631.8900146484375,
+          "xmax": 658.181396484375,
+          "ymax": 719.4720458984375
+        },
+        "area": 14643.2939453125
+      },
+      {
+        "label": "person",
+        "confidence": 0.2810249328613281,
+        "bbox": {
+          "xmin": 904.63232421875,
+          "ymin": 556.7573852539062,
+          "xmax": 945.7769775390625,
+          "ymax": 618.0126342773438
+        },
+        "area": 2520.325927734375
+      }
+    ]
+  },
+  {
+    "frame_id": 26,
+    "timestamp": 26.0,
+    "frame_path": "C:\\Users\\lukev\\Projects\\HawkEye\\panover_frames\\frame_000750.jpg",
+    "gps_coords": [
+      null,
+      null,
+      null
+    ],
+    "detected_objects": [
+      {
+        "label": "chair",
+        "confidence": 0.8232085704803467,
+        "bbox": {
+          "xmin": 200.48544311523438,
+          "ymin": 484.9343566894531,
+          "xmax": 263.2063293457031,
+          "ymax": 566.85595703125
+        },
+        "area": 5138.1953125
+      },
+      {
+        "label": "person",
+        "confidence": 0.8028526306152344,
+        "bbox": {
+          "xmin": 378.653076171875,
+          "ymin": 618.810302734375,
+          "xmax": 478.02996826171875,
+          "ymax": 720.0
+        },
+        "area": 10055.91796875
+      },
+      {
+        "label": "chair",
+        "confidence": 0.7368122935295105,
+        "bbox": {
+          "xmin": 809.2928466796875,
+          "ymin": 590.9385375976562,
+          "xmax": 892.2274169921875,
+          "ymax": 701.5606079101562
+        },
+        "area": 9174.3935546875
+      },
+      {
+        "label": "chair",
+        "confidence": 0.6780038475990295,
+        "bbox": {
+          "xmin": 1034.923095703125,
+          "ymin": 588.5336303710938,
+          "xmax": 1116.122314453125,
+          "ymax": 706.0144653320312
+        },
+        "area": 9539.3515625
+      },
+      {
+        "label": "chair",
+        "confidence": 0.6755098104476929,
+        "bbox": {
+          "xmin": 271.692626953125,
+          "ymin": 464.0126647949219,
+          "xmax": 340.19189453125,
+          "ymax": 554.155517578125
+        },
+        "area": 6174.71923828125
+      },
+      {
+        "label": "chair",
+        "confidence": 0.6463521718978882,
+        "bbox": {
+          "xmin": 134.25900268554688,
+          "ymin": 467.522216796875,
+          "xmax": 203.34970092773438,
+          "ymax": 557.3619384765625
+        },
+        "area": 6207.0888671875
+      },
+      {
+        "label": "chair",
+        "confidence": 0.579300045967102,
+        "bbox": {
+          "xmin": 440.8026123046875,
+          "ymin": 584.2608642578125,
+          "xmax": 515.5184936523438,
+          "ymax": 697.8758544921875
+        },
+        "area": 8488.84375
+      },
+      {
+        "label": "umbrella",
+        "confidence": 0.5161728858947754,
+        "bbox": {
+          "xmin": 422.1494140625,
+          "ymin": 461.96893310546875,
+          "xmax": 704.5302734375,
+          "ymax": 579.5607299804688
+        },
+        "area": 33205.671875
+      },
+      {
+        "label": "chair",
+        "confidence": 0.44898003339767456,
+        "bbox": {
+          "xmin": 659.7386474609375,
+          "ymin": 600.8729248046875,
+          "xmax": 737.0518798828125,
+          "ymax": 690.3258056640625
+        },
+        "area": 6915.8916015625
+      },
+      {
+        "label": "person",
+        "confidence": 0.41289740800857544,
+        "bbox": {
+          "xmin": 1009.8623657226562,
+          "ymin": 455.5969543457031,
+          "xmax": 1054.61865234375,
+          "ymax": 556.45654296875
+        },
+        "area": 4514.1005859375
+      },
+      {
+        "label": "chair",
+        "confidence": 0.3400195837020874,
+        "bbox": {
+          "xmin": 602.8695068359375,
+          "ymin": 671.0731811523438,
+          "xmax": 731.9952392578125,
+          "ymax": 720.0
+        },
+        "area": 6317.71142578125
+      },
+      {
+        "label": "dining table",
+        "confidence": 0.25842177867889404,
+        "bbox": {
+          "xmin": 486.4249267578125,
+          "ymin": 621.0489501953125,
+          "xmax": 650.5645751953125,
+          "ymax": 693.9456787109375
+        },
+        "area": 11965.2431640625
+      },
+      {
+        "label": "chair",
+        "confidence": 0.25798699259757996,
+        "bbox": {
+          "xmin": 1008.7269287109375,
+          "ymin": 498.659423828125,
+          "xmax": 1052.8731689453125,
+          "ymax": 558.10400390625
+        },
+        "area": 2624.254638671875
+      },
+      {
+        "label": "chair",
+        "confidence": 0.25707533955574036,
+        "bbox": {
+          "xmin": 485.74908447265625,
+          "ymin": 622.902099609375,
+          "xmax": 650.0159301757812,
+          "ymax": 720.0
+        },
+        "area": 15949.9658203125
+      }
+    ]
+  }
+]
