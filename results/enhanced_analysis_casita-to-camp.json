@@ -1,0 +1,101 @@
+{
+  "query": "Which area is most likely to have people?",
+  "query_type": "object_location",
+  "flight_statistics": {
+    "original_waypoints": 17,
+    "flight_distance_meters": 182.78340549783516,
+    "total_frames": 117,
+    "frames_with_detections": 43,
+    "total_objects_detected": 173,
+    "unique_object_types": 6,
+    "object_type_counts": {
+      "truck": 5,
+      "chair": 1,
+      "person": 1,
+      "car": 162,
+      "bench": 3,
+      "umbrella": 1
+    }
+  },
+  "heat_map_statistics": {
+    "grid_size_meters": 15.0,
+    "total_cells": 105,
+    "active_cells": 8,
+    "max_density_score": 81.5,
+    "intensity_distribution": {
+      "very_high": 5,
+      "high": 0,
+      "medium": 2,
+      "low": 1,
+      "none": 97
+    },
+    "coverage_area_sqkm": 0.023625,
+    "information_density_percent": 7.6190476190476195
+  },
+  "analysis_results": {
+    "target_objects_searched": [
+      "person"
+    ],
+    "total_locations_found": 1,
+    "object_types_found": [
+      "person"
+    ],
+    "locations_by_type": {
+      "person": [
+        {
+          "gps_location": {
+            "lat": 36.270958580466434,
+            "lon": -105.57754303033501
+          },
+          "frame_id": 58,
+          "confidence": 0.8288121223449707
+        }
+      ]
+    },
+    "summary": "Found 1 instances of target objects across 1 different types."
+  },
+  "object_survey_plan": {
+    "corridor_width_meters": 20.0,
+    "survey_type": "adaptive_density",
+    "total_waypoints": 4,
+    "waypoint_distribution": {
+      "high_density_areas": 4,
+      "medium_density_areas": 0,
+      "low_density_areas": 0
+    },
+    "coverage_efficiency_percent": 100.0,
+    "coverage_statistics": {
+      "total_zones": 0,
+      "high_priority_zones": 0,
+      "medium_priority_zones": 0,
+      "low_priority_zones": 0,
+      "total_objects_found": 0,
+      "average_density": 0
+    },
+    "density_zones": [],
+    "waypoint_locations": [
+      {
+        "lat": 36.271138760646615,
+        "lon": -105.57754303033501,
+        "name": "obj_search_0_0_person"
+      },
+      {
+        "lat": 36.270958580466434,
+        "lon": -105.57731954501327,
+        "name": "obj_search_0_90_person"
+      },
+      {
+        "lat": 36.270778400286254,
+        "lon": -105.57754303033501,
+        "name": "obj_search_0_180_person"
+      },
+      {
+        "lat": 36.270958580466434,
+        "lon": -105.57776651565675,
+        "name": "obj_search_0_270_person"
+      }
+    ],
+    "summary": "Generated 4 adaptive waypoints: 4 in high-density areas, 0 in medium-density areas, 0 in low-density areas. Coverage efficiency: 100.0%"
+  },
+  "has_visual_map": true
+}
