@@ -1,40 +1,44 @@
 #!/usr/bin/env python3
 r"""
-Input-Based Intelligent Drone Mission Planning System
-Receives KML flight plan, JSON detection results, and user query to generate optimized flight plans.
+Simplified Single-Flight Drone Mission Planning System
+Analyzes one flight's KML + JSON detection data to answer specific queries.
 
-Run with: python input_based_mission_planner.py
+What this system CAN do with single-flight input:
+- Generate corridor survey patterns around the actual flight path
+- Recommend photo frequencies based on object density found in this flight
+- Identify where objects were actually detected along the route
+- Create optimized flight plans focused on areas where objects were found
+
+What this system CANNOT do (requires historical data):
+- Predict future detection probabilities
+- Calculate "success rates" or "confidence scores"
+- Make statistical predictions about areas not flown
 """
 
 import os
 import json
 import logging
 import numpy as np
+import math
 from pathlib import Path
 from typing import Dict, List, Tuple, Optional, Any
 from dataclasses import dataclass
 from enum import Enum
-from sklearn.cluster import KMeans
 
-# Import enhanced map extraction components
+# Import basic map extraction components
 from map_extract import (
     FlightPlan, FlightPoint, FlightPlanParser, 
-    QGISMapGenerator, generate_flight_context_map,
-    haversine_distance, meters_to_degrees, ensure_output_directory
+    haversine_distance, meters_to_degrees
 )
 
 # Setup logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 # =============================================================================
 # OUTPUT CONFIGURATION
 # =============================================================================
 
-# Centralized output folder
 HAWKEYE_OUTPUT_FOLDER = "hawkeye_output"
 
 def ensure_hawkeye_output_directory():
@@ -48,129 +52,118 @@ def get_hawkeye_output_path(filename: str) -> str:
     return str(Path(HAWKEYE_OUTPUT_FOLDER) / filename)
 
 # =============================================================================
-# DATA STRUCTURES
+# SIMPLIFIED DATA STRUCTURES
 # =============================================================================
 
-class MissionType(Enum):
-    SEARCH = "search"
-    SURVEY = "survey"
-    INSPECTION = "inspection"
-    MONITORING = "monitoring"
-
-@dataclass
-class MissionObjective:
-    """Mission objective structure"""
-    mission_type: MissionType
-    target_objects: List[str]
-    user_goal: str
+class QueryType(Enum):
+    CORRIDOR_SURVEY = "corridor_survey"
+    PHOTO_OPTIMIZATION = "photo_optimization" 
+    OBJECT_LOCATION = "object_location"
+    FLIGHT_OPTIMIZATION = "flight_optimization"
 
 @dataclass
 class DetectedObject:
-    """Object detection result from JSON input"""
+    """Object from JSON detection results"""
     label: str
     confidence: float
-    bbox: Dict[str, float]  # xmin, ymin, xmax, ymax
+    bbox: Dict[str, float]
     area: float
 
 @dataclass
-class FrameData:
-    """Frame data from JSON input"""
+class FlightFrame:
+    """Single frame with GPS location and detections"""
     frame_id: int
     timestamp: float
-    frame_path: str
-    gps_coords: Tuple[float, float, float]  # Will be calculated
+    gps_coords: Tuple[float, float, float]  # lat, lon, alt
     detected_objects: List[DetectedObject]
 
 @dataclass
-class SceneObservation:
-    """Processed observation from frame data"""
+class ObjectLocation:
+    """Where an object was actually found"""
+    object_type: str
+    gps_location: Tuple[float, float]
     frame_id: int
-    timestamp: float
-    gps_coords: Tuple[float, float, float]
-    detected_objects: List[str]
-    scene_description: str
-    relevance_score: float
+    confidence: float
 
 @dataclass
-class OptimizationSuggestion:
-    """Flight plan optimization suggestion"""
-    suggestion_type: str
-    location: Optional[Tuple[float, float]]
-    description: str
-    reason: str
+class PhotoSegmentRecommendation:
+    """Photo frequency recommendation for a flight segment"""
+    segment_start: Tuple[float, float]
+    segment_end: Tuple[float, float]
+    distance_meters: float
+    objects_found: int
+    unique_object_types: int
+    recommended_fps: float
+    reasoning: str
+
+@dataclass
+class CorridorSurveyPlan:
+    """Corridor survey pattern around original flight"""
+    corridor_width_meters: float
+    waypoints: List[FlightPoint]
+    coverage_area_sqm: float
+    flight_distance_meters: float
 
 # =============================================================================
-# MISSION OBJECTIVE PARSER
+# SIMPLE QUERY PARSER
 # =============================================================================
 
-class SimpleMissionParser:
-    """Parse user objectives into structured format"""
+class SimpleQueryParser:
+    """Parse user queries to understand what they're asking"""
     
-    def __init__(self):
-        # Updated for various detection scenarios
-        self.target_keywords = {
-            "person": ["person", "people", "human", "student", "pedestrian", "staff", "faculty"],
-            "vehicle": ["car", "truck", "vehicle", "suv", "motorcycle", "bus", "van"],
-            "building": ["building", "structure", "house", "facility", "dorm", "classroom"],
-            "furniture": ["bench", "chair", "table", "furniture"],
-            "equipment": ["equipment", "machinery", "construction"],
-            "umbrella": ["umbrella", "shade", "canopy"],
-            "general": ["object", "item", "thing"]
-        }
-    
-    def parse_objective(self, user_input: str) -> MissionObjective:
-        """Parse natural language objective"""
+    def parse_query(self, user_input: str) -> Tuple[QueryType, Dict[str, Any]]:
+        """Parse user query and extract parameters"""
         user_input_lower = user_input.lower()
         
-        # Determine mission type
-        if "find" in user_input_lower or "search" in user_input_lower or "locate" in user_input_lower:
-            mission_type = MissionType.SEARCH
-        elif "survey" in user_input_lower or "map" in user_input_lower or "count" in user_input_lower:
-            mission_type = MissionType.SURVEY
-        elif "inspect" in user_input_lower or "check" in user_input_lower or "monitor" in user_input_lower:
-            mission_type = MissionType.INSPECTION
-        else:
-            mission_type = MissionType.MONITORING
-        
-        # Extract target objects
-        target_objects = []
-        for target, keywords in self.target_keywords.items():
-            if any(keyword in user_input_lower for keyword in keywords):
-                target_objects.append(target)
-        
-        return MissionObjective(
-            mission_type=mission_type,
-            target_objects=target_objects,
-            user_goal=user_input
-        )
-
-# =============================================================================
-# JSON DATA PROCESSOR
-# =============================================================================
-
-class JSONDataProcessor:
-    """Process JSON detection results and map to GPS coordinates"""
-    
-    def __init__(self):
-        pass
-    
-    def load_detection_results(self, json_file_path: str) -> List[FrameData]:
-        """
-        Load detection results from JSON file
-        
-        Args:
-            json_file_path: Path to JSON file with detection results
+        # Extract corridor width if mentioned
+        corridor_width = None
+        if "around" in user_input_lower or "corridor" in user_input_lower:
+            import re
+            width_match = re.search(r'(\d+)\s*(?:meter|m\b|feet)', user_input_lower)
+            if width_match:
+                corridor_width = float(width_match.group(1))
+                if "feet" in user_input_lower:
+                    corridor_width = corridor_width * 0.3048  # Convert to meters
             
-        Returns:
-            List of FrameData objects
-        """
+            return QueryType.CORRIDOR_SURVEY, {"corridor_width_meters": corridor_width or 10.0}
+        
+        # Photo frequency queries
+        if any(word in user_input_lower for word in ["photo", "fps", "frame", "second", "picture"]):
+            return QueryType.PHOTO_OPTIMIZATION, {}
+        
+        # Object location queries
+        if any(word in user_input_lower for word in ["find", "where", "locate", "most"]):
+            # Extract target objects
+            target_objects = []
+            object_keywords = ["person", "people", "vehicle", "car", "truck", "cone", "bench", "furniture"]
+            for keyword in object_keywords:
+                if keyword in user_input_lower:
+                    target_objects.append(keyword)
+            
+            return QueryType.OBJECT_LOCATION, {"target_objects": target_objects}
+        
+        # Default to flight optimization
+        return QueryType.FLIGHT_OPTIMIZATION, {}
+
+# =============================================================================
+# FLIGHT DATA PROCESSOR
+# =============================================================================
+
+class FlightDataProcessor:
+    """Process single flight JSON data and map to GPS coordinates"""
+    
+    def load_flight_data(self, json_file_path: str, flight_plan: FlightPlan) -> List[FlightFrame]:
+        """Load detection results and map to GPS coordinates along flight path"""
+        
+        # Load JSON data
         with open(json_file_path, 'r') as f:
             data = json.load(f)
         
-        frame_data_list = []
+        logger.info(f"📄 Loaded {len(data)} frames from JSON")
         
+        # Convert to FlightFrame objects
+        frames = []
         for frame_dict in data:
-            # Convert detected objects
             detected_objects = []
             for obj_dict in frame_dict.get('detected_objects', []):
                 detected_obj = DetectedObject(
@@ -181,395 +174,608 @@ class JSONDataProcessor:
                 )
                 detected_objects.append(detected_obj)
             
-            # Create frame data (GPS coords will be calculated later)
-            frame_data = FrameData(
+            frame = FlightFrame(
                 frame_id=frame_dict['frame_id'],
                 timestamp=frame_dict['timestamp'],
-                frame_path=frame_dict['frame_path'],
                 gps_coords=(0.0, 0.0, 0.0),  # Will be calculated
                 detected_objects=detected_objects
             )
-            
-            frame_data_list.append(frame_data)
+            frames.append(frame)
         
-        logger.info(f"✅ Loaded {len(frame_data_list)} frames from JSON")
-        return frame_data_list
+        # Map frames to GPS coordinates along flight path
+        self._map_frames_to_flight_path(frames, flight_plan)
+        
+        logger.info(f"📍 Mapped {len(frames)} frames to GPS coordinates")
+        return frames
     
-    def map_frames_to_gps(self, frame_data_list: List[FrameData], 
-                         flight_plan: FlightPlan) -> List[FrameData]:
-        """
-        Map frame data to GPS coordinates based on flight plan
+    def _map_frames_to_flight_path(self, frames: List[FlightFrame], flight_plan: FlightPlan):
+        """Map frame sequence to GPS coordinates along the flight path"""
+        if not frames or len(flight_plan.points) < 2:
+            return
         
-        Args:
-            frame_data_list: List of frame data
-            flight_plan: Flight plan with GPS waypoints
-            
-        Returns:
-            Updated frame data list with GPS coordinates
-        """
-        if not frame_data_list or not flight_plan.points:
-            logger.warning("No frame data or flight plan waypoints available")
-            return frame_data_list
+        total_frames = len(frames)
         
-        # Get total number of frames
-        total_frames = len(frame_data_list)
-        logger.info(f"📍 Mapping {total_frames} frames to {len(flight_plan.points)} waypoints")
+        # Calculate cumulative distances along flight path
+        cumulative_distances = [0.0]
+        for i in range(1, len(flight_plan.points)):
+            prev_point = flight_plan.points[i-1]
+            curr_point = flight_plan.points[i]
+            segment_distance = haversine_distance(
+                prev_point.lat, prev_point.lon,
+                curr_point.lat, curr_point.lon
+            )
+            cumulative_distances.append(cumulative_distances[-1] + segment_distance)
         
-        # Update each frame with GPS coordinates
-        for i, frame_data in enumerate(frame_data_list):
-            # Calculate progress through frames (0.0 to 1.0)
+        total_distance = cumulative_distances[-1]
+        
+        # Map each frame to a GPS coordinate
+        for i, frame in enumerate(frames):
+            # Calculate progress through flight (0.0 to 1.0)
             progress = i / (total_frames - 1) if total_frames > 1 else 0.0
             
-            # Estimate GPS coordinates
-            gps_coords = self._estimate_gps_from_progress(progress, flight_plan)
+            # Convert progress to distance along path
+            target_distance = progress * total_distance
             
-            # Update frame data
-            frame_data.gps_coords = gps_coords
+            # Find GPS coordinates at this distance
+            gps_coords = self._interpolate_gps_at_distance(
+                target_distance, flight_plan.points, cumulative_distances
+            )
             
-            if i < 5:  # Log first few for verification
-                logger.info(f"Frame {frame_data.frame_id}: GPS {gps_coords[0]:.6f}, {gps_coords[1]:.6f}")
-        
-        return frame_data_list
+            frame.gps_coords = gps_coords
     
-    def _estimate_gps_from_progress(self, progress: float, flight_plan: FlightPlan) -> Tuple[float, float, float]:
-        """
-        Estimate GPS coordinates based on progress through flight plan
+    def _interpolate_gps_at_distance(self, target_distance: float, 
+                                   waypoints: List[FlightPoint],
+                                   cumulative_distances: List[float]) -> Tuple[float, float, float]:
+        """Find GPS coordinates at specific distance along path"""
         
-        Args:
-            progress: Progress through flight (0.0 to 1.0)
-            flight_plan: Flight plan with waypoints
-            
-        Returns:
-            Estimated (lat, lon, alt) tuple
-        """
-        waypoints = flight_plan.points
-        
-        if len(waypoints) == 0:
-            return (0.0, 0.0, 100.0)
-        elif len(waypoints) == 1:
+        if target_distance <= 0:
             wp = waypoints[0]
             return (wp.lat, wp.lon, wp.alt if wp.alt else 100.0)
         
-        # Calculate which segment we're in
-        total_segments = len(waypoints) - 1
-        segment_progress = progress * total_segments
-        segment_index = int(segment_progress)
-        segment_fraction = segment_progress - segment_index
+        if target_distance >= cumulative_distances[-1]:
+            wp = waypoints[-1]
+            return (wp.lat, wp.lon, wp.alt if wp.alt else 100.0)
         
-        # Clamp to valid range
-        segment_index = min(segment_index, total_segments - 1)
+        # Find segment containing target distance
+        for i in range(len(cumulative_distances) - 1):
+            if cumulative_distances[i] <= target_distance <= cumulative_distances[i + 1]:
+                segment_start_dist = cumulative_distances[i]
+                segment_end_dist = cumulative_distances[i + 1]
+                segment_length = segment_end_dist - segment_start_dist
+                
+                if segment_length > 0:
+                    segment_progress = (target_distance - segment_start_dist) / segment_length
+                else:
+                    segment_progress = 0.0
+                
+                # Interpolate between waypoints
+                wp1 = waypoints[i]
+                wp2 = waypoints[i + 1]
+                
+                lat = wp1.lat + (wp2.lat - wp1.lat) * segment_progress
+                lon = wp1.lon + (wp2.lon - wp1.lon) * segment_progress
+                
+                alt1 = wp1.alt if wp1.alt else 100
+                alt2 = wp2.alt if wp2.alt else 100
+                alt = alt1 + (alt2 - alt1) * segment_progress
+                
+                return (lat, lon, alt)
         
-        # Interpolate between waypoints
-        wp1 = waypoints[segment_index]
-        wp2 = waypoints[segment_index + 1]
-        
-        lat = wp1.lat + (wp2.lat - wp1.lat) * segment_fraction
-        lon = wp1.lon + (wp2.lon - wp1.lon) * segment_fraction
-        
-        # Handle altitude
-        alt1 = wp1.alt if wp1.alt else 100
-        alt2 = wp2.alt if wp2.alt else 100
-        alt = alt1 + (alt2 - alt1) * segment_fraction
-        
-        return (lat, lon, alt)
+        # Fallback
+        wp = waypoints[0]
+        return (wp.lat, wp.lon, wp.alt if wp.alt else 100.0)
 
 # =============================================================================
-# SCENE ANALYZER
+# MISSION ANALYZERS
 # =============================================================================
 
-class SceneAnalyzer:
-    """Analyze scenes from frame data and generate observations"""
+class CorridorSurveyGenerator:
+    """Generate corridor survey patterns around the actual flight path"""
     
-    def __init__(self):
-        pass
+    def generate_corridor_survey(self, original_plan: FlightPlan, 
+                                corridor_width_meters: float = 10.0) -> CorridorSurveyPlan:
+        """Generate systematic corridor survey around the flight path"""
+        
+        logger.info(f"🛤️  Generating {corridor_width_meters}m corridor survey")
+        
+        if len(original_plan.points) < 2:
+            logger.warning("Need at least 2 waypoints for corridor survey")
+            return CorridorSurveyPlan(corridor_width_meters, [], 0, 0)
+        
+        corridor_waypoints = []
+        half_width = corridor_width_meters / 2
+        total_distance = 0
+        
+        # Generate waypoints for each segment
+        for i in range(len(original_plan.points) - 1):
+            current_point = original_plan.points[i]
+            next_point = original_plan.points[i + 1]
+            
+            # Calculate bearing between points
+            bearing = self._calculate_bearing(current_point, next_point)
+            
+            # Calculate segment distance
+            segment_distance = haversine_distance(
+                current_point.lat, current_point.lon,
+                next_point.lat, next_point.lon
+            )
+            total_distance += segment_distance
+            
+            # Generate corridor waypoints for this segment
+            segment_waypoints = self._generate_segment_corridor(
+                current_point, next_point, half_width, bearing, i
+            )
+            corridor_waypoints.extend(segment_waypoints)
+        
+        # Calculate coverage area
+        coverage_area = corridor_width_meters * total_distance
+        
+        return CorridorSurveyPlan(
+            corridor_width_meters=corridor_width_meters,
+            waypoints=corridor_waypoints,
+            coverage_area_sqm=coverage_area,
+            flight_distance_meters=total_distance
+        )
     
-    def process_frame_data(self, frame_data_list: List[FrameData], 
-                          mission_objective: MissionObjective) -> List[SceneObservation]:
-        """
-        Process frame data into scene observations
+    def _calculate_bearing(self, point1: FlightPoint, point2: FlightPoint) -> float:
+        """Calculate bearing between two points"""
+        lat1, lon1 = math.radians(point1.lat), math.radians(point1.lon)
+        lat2, lon2 = math.radians(point2.lat), math.radians(point2.lon)
         
-        Args:
-            frame_data_list: List of frame data with GPS coordinates
-            mission_objective: Mission objective
-            
-        Returns:
-            List of scene observations
-        """
-        observations = []
+        dlon = lon2 - lon1
+        y = math.sin(dlon) * math.cos(lat2)
+        x = math.cos(lat1) * math.sin(lat2) - math.sin(lat1) * math.cos(lat2) * math.cos(dlon)
         
-        for frame_data in frame_data_list:
-            if not frame_data.detected_objects:
-                continue
+        bearing = math.atan2(y, x)
+        return (math.degrees(bearing) + 360) % 360
+    
+    def _generate_segment_corridor(self, point1: FlightPoint, point2: FlightPoint,
+                                 half_width_meters: float, bearing: float, 
+                                 segment_index: int) -> List[FlightPoint]:
+        """Generate corridor waypoints for one segment"""
+        
+        # Calculate perpendicular bearings (left and right of flight path)
+        left_bearing = (bearing + 90) % 360
+        right_bearing = (bearing - 90) % 360
+        
+        # Generate offset points
+        left_start = self._offset_point(point1, left_bearing, half_width_meters)
+        right_start = self._offset_point(point1, right_bearing, half_width_meters)
+        left_end = self._offset_point(point2, left_bearing, half_width_meters)
+        right_end = self._offset_point(point2, right_bearing, half_width_meters)
+        
+        # Create waypoints for systematic coverage
+        waypoints = [
+            FlightPoint(left_start[0], left_start[1], 100, f"corridor_L{segment_index}_start"),
+            FlightPoint(left_end[0], left_end[1], 100, f"corridor_L{segment_index}_end"),
+            FlightPoint(right_end[0], right_end[1], 100, f"corridor_R{segment_index}_end"),
+            FlightPoint(right_start[0], right_start[1], 100, f"corridor_R{segment_index}_start"),
+        ]
+        
+        return waypoints
+    
+    def _offset_point(self, point: FlightPoint, bearing: float, distance_meters: float) -> Tuple[float, float]:
+        """Calculate new point offset by bearing and distance"""
+        lat_offset, lon_offset = meters_to_degrees(distance_meters, point.lat)
+        
+        bearing_rad = math.radians(bearing)
+        lat_delta = lat_offset * math.cos(bearing_rad)
+        lon_delta = lon_offset * math.sin(bearing_rad)
+        
+        return (point.lat + lat_delta, point.lon + lon_delta)
+
+class PhotoOptimizationAnalyzer:
+    """Analyze object density to recommend photo frequencies"""
+    
+    def analyze_photo_requirements(self, frames: List[FlightFrame], 
+                                 flight_plan: FlightPlan) -> List[PhotoSegmentRecommendation]:
+        """Analyze where photos should be taken based on object density found"""
+        
+        logger.info(f"📸 Analyzing photo requirements for {len(frames)} frames")
+        
+        if len(flight_plan.points) < 2:
+            return []
+        
+        recommendations = []
+        
+        # Analyze each flight segment
+        for i in range(len(flight_plan.points) - 1):
+            current_wp = flight_plan.points[i]
+            next_wp = flight_plan.points[i + 1]
             
-            # Extract object labels
-            object_labels = [obj.label for obj in frame_data.detected_objects]
+            # Find frames near this segment
+            segment_frames = self._get_frames_near_segment(frames, current_wp, next_wp)
             
-            # Generate scene description
-            scene_description = self.generate_scene_description(frame_data.detected_objects, frame_data.frame_id)
+            # Analyze object density in this segment
+            objects_found = sum(len(frame.detected_objects) for frame in segment_frames)
+            unique_objects = len(set(obj.label for frame in segment_frames for obj in frame.detected_objects))
             
-            # Calculate relevance score
-            relevance_score = self.calculate_relevance_score(object_labels, mission_objective)
-            
-            # Create observation
-            observation = SceneObservation(
-                frame_id=frame_data.frame_id,
-                timestamp=frame_data.timestamp,
-                gps_coords=frame_data.gps_coords,
-                detected_objects=list(set(object_labels)),
-                scene_description=scene_description,
-                relevance_score=relevance_score
+            # Calculate segment distance
+            segment_distance = haversine_distance(
+                current_wp.lat, current_wp.lon, next_wp.lat, next_wp.lon
             )
             
-            observations.append(observation)
+            # Recommend photo frequency based on what was actually found
+            recommended_fps, reasoning = self._calculate_fps_recommendation(
+                objects_found, unique_objects, len(segment_frames)
+            )
+            
+            recommendation = PhotoSegmentRecommendation(
+                segment_start=(current_wp.lat, current_wp.lon),
+                segment_end=(next_wp.lat, next_wp.lon),
+                distance_meters=segment_distance,
+                objects_found=objects_found,
+                unique_object_types=unique_objects,
+                recommended_fps=recommended_fps,
+                reasoning=reasoning
+            )
+            
+            recommendations.append(recommendation)
         
-        logger.info(f"✅ Generated {len(observations)} scene observations")
-        return observations
+        return recommendations
     
-    def generate_scene_description(self, detected_objects: List[DetectedObject], frame_id: int) -> str:
-        """Generate natural language description of the scene"""
-        if not detected_objects:
-            return "No objects detected in this frame"
+    def _get_frames_near_segment(self, frames: List[FlightFrame], 
+                               point1: FlightPoint, point2: FlightPoint) -> List[FlightFrame]:
+        """Find frames that were captured near this flight segment"""
+        segment_frames = []
         
-        # Count object types
-        object_counts = {}
-        for obj in detected_objects:
-            label = obj.label
-            if label not in object_counts:
-                object_counts[label] = 0
-            object_counts[label] += 1
+        for frame in frames:
+            # Check if frame is close to either endpoint of segment
+            dist1 = haversine_distance(point1.lat, point1.lon, frame.gps_coords[0], frame.gps_coords[1])
+            dist2 = haversine_distance(point2.lat, point2.lon, frame.gps_coords[0], frame.gps_coords[1])
+            
+            # If frame is within 100m of either endpoint, consider it part of this segment
+            if min(dist1, dist2) <= 100:
+                segment_frames.append(frame)
         
-        # Build description
-        descriptions = []
-        for label, count in object_counts.items():
-            if count == 1:
-                descriptions.append(f"a {label}")
-            else:
-                descriptions.append(f"{count} {label}s")
+        return segment_frames
+    
+    def _calculate_fps_recommendation(self, objects_found: int, unique_objects: int, 
+                                    frames_analyzed: int) -> Tuple[float, str]:
+        """Calculate photo frequency based on actual object density found"""
         
-        # Create natural sentence
-        if len(descriptions) == 1:
-            scene_desc = f"Frame {frame_id} shows {descriptions[0]}"
-        elif len(descriptions) == 2:
-            scene_desc = f"Frame {frame_id} shows {descriptions[0]} and {descriptions[1]}"
+        if frames_analyzed == 0:
+            return 1.0, "No data available for this segment"
+        
+        # Calculate object density per frame
+        objects_per_frame = objects_found / frames_analyzed if frames_analyzed > 0 else 0
+        
+        # Recommend FPS based on actual findings
+        if objects_per_frame >= 3 and unique_objects >= 3:
+            return 6.0, f"High activity: {objects_found} objects ({unique_objects} types) found in {frames_analyzed} frames"
+        elif objects_per_frame >= 1.5 and unique_objects >= 2:
+            return 4.0, f"Moderate activity: {objects_found} objects ({unique_objects} types) found"
+        elif objects_per_frame >= 0.5:
+            return 2.0, f"Low activity: {objects_found} objects found in {frames_analyzed} frames"
         else:
-            scene_desc = f"Frame {frame_id} shows {', '.join(descriptions[:-1])}, and {descriptions[-1]}"
-        
-        return scene_desc
+            return 1.0, f"Minimal activity: {objects_found} objects found - conserve storage"
+
+class ObjectLocationAnalyzer:
+    """Analyze where specific objects were actually found"""
     
-    def calculate_relevance_score(self, detected_objects: List[str], mission_objective: MissionObjective) -> float:
-        """Calculate how relevant detected objects are to mission objective"""
-        if not detected_objects or not mission_objective.target_objects:
-            return 0.0
+    def find_object_locations(self, frames: List[FlightFrame], 
+                            target_objects: List[str]) -> List[ObjectLocation]:
+        """Find where target objects were actually detected"""
         
-        # Simple keyword matching for relevance
-        matches = 0
-        total_targets = len(mission_objective.target_objects)
+        logger.info(f"🔍 Searching for objects: {target_objects}")
         
-        for target in mission_objective.target_objects:
+        found_locations = []
+        
+        for frame in frames:
+            for obj in frame.detected_objects:
+                # Check if this object matches any target (flexible matching)
+                if self._is_target_object(obj.label, target_objects):
+                    location = ObjectLocation(
+                        object_type=obj.label,
+                        gps_location=(frame.gps_coords[0], frame.gps_coords[1]),
+                        frame_id=frame.frame_id,
+                        confidence=obj.confidence
+                    )
+                    found_locations.append(location)
+        
+        logger.info(f"📍 Found {len(found_locations)} target object locations")
+        return found_locations
+    
+    def _is_target_object(self, detected_label: str, target_objects: List[str]) -> bool:
+        """Check if detected object matches any target objects"""
+        detected_lower = detected_label.lower()
+        
+        for target in target_objects:
             target_lower = target.lower()
-            for detected in detected_objects:
-                detected_lower = detected.lower()
-                # Check if target keywords match detected objects
-                if target_lower in detected_lower or detected_lower in target_lower:
-                    matches += 1
-                    break
+            
+            # Exact match
+            if target_lower == detected_lower:
+                return True
+            
+            # Partial match
+            if target_lower in detected_lower or detected_lower in target_lower:
+                return True
+            
+            # Semantic matching
+            if self._semantic_match(target_lower, detected_lower):
+                return True
         
-        return min(matches / total_targets, 1.0) if total_targets > 0 else 0.0
+        return False
+    
+    def _semantic_match(self, target: str, detected: str) -> bool:
+        """Basic semantic matching for related objects"""
+        semantic_groups = {
+            "vehicle": ["car", "truck", "bus", "motorcycle", "van"],
+            "person": ["human", "people", "pedestrian"],
+            "furniture": ["chair", "table", "bench"],
+        }
+        
+        # Check if target is a group name that includes detected object
+        if target in semantic_groups and detected in semantic_groups[target]:
+            return True
+        
+        # Check reverse
+        for group_name, items in semantic_groups.items():
+            if detected == group_name and target in items:
+                return True
+        
+        return False
 
 # =============================================================================
-# FLIGHT PLAN OPTIMIZER
+# MAIN MISSION ANALYZER
 # =============================================================================
 
-class FlightPlanOptimizer:
-    """Optimize flight plans based on observations and objectives"""
+class SingleFlightMissionAnalyzer:
+    """Main analyzer for single flight missions"""
     
     def __init__(self):
-        pass
+        self.query_parser = SimpleQueryParser()
+        self.data_processor = FlightDataProcessor()
+        self.corridor_generator = CorridorSurveyGenerator()
+        self.photo_analyzer = PhotoOptimizationAnalyzer()
+        self.object_analyzer = ObjectLocationAnalyzer()
     
-    def optimize_flight_plan(self, 
-                           original_plan: FlightPlan,
-                           observations: List[SceneObservation],
-                           mission_objective: MissionObjective) -> Tuple[FlightPlan, List[OptimizationSuggestion]]:
-        """
-        Optimize flight plan based on observations and mission objective
+    def analyze_mission(self, flight_plan_file: str, detection_json_file: str, 
+                       user_query: str) -> Dict[str, Any]:
+        """Analyze single flight mission based on user query"""
         
-        Returns:
-            optimized_plan: New optimized flight plan
-            suggestions: List of optimization suggestions
-        """
-        suggestions = []
+        logger.info(f"🚁 Analyzing single flight mission")
+        logger.info(f"❓ Query: {user_query}")
         
-        # Analyze observations for mission-relevant areas
-        high_value_areas = []
-        low_value_areas = []
-        obstacles = []
+        # Parse the user query
+        query_type, query_params = self.query_parser.parse_query(user_query)
+        logger.info(f"📋 Query type: {query_type.value}")
         
-        for obs in observations:
-            # Check if observation is relevant to mission
-            if any(target in obs.detected_objects for target in mission_objective.target_objects):
-                high_value_areas.append(obs)
-            elif obs.relevance_score < 0.3:
-                low_value_areas.append(obs)
+        # Load flight plan and detection data
+        flight_plan = FlightPlanParser.parse_file(flight_plan_file)
+        frames = self.data_processor.load_flight_data(detection_json_file, flight_plan)
+        
+        # Generate basic flight statistics
+        flight_stats = self._calculate_flight_statistics(flight_plan, frames)
+        
+        # Process based on query type
+        result = {
+            "query": user_query,
+            "query_type": query_type.value,
+            "flight_statistics": flight_stats,
+            "analysis_results": {}
+        }
+        
+        if query_type == QueryType.CORRIDOR_SURVEY:
+            corridor_plan = self.corridor_generator.generate_corridor_survey(
+                flight_plan, query_params.get("corridor_width_meters", 10.0)
+            )
+            result["analysis_results"] = self._format_corridor_results(corridor_plan)
             
-            # Check for obstacles (if any)
-            if "wall" in obs.scene_description.lower() or "blocked" in obs.scene_description.lower():
-                obstacles.append(obs)
+        elif query_type == QueryType.PHOTO_OPTIMIZATION:
+            photo_recommendations = self.photo_analyzer.analyze_photo_requirements(frames, flight_plan)
+            result["analysis_results"] = self._format_photo_results(photo_recommendations)
+            
+        elif query_type == QueryType.OBJECT_LOCATION:
+            target_objects = query_params.get("target_objects", [])
+            object_locations = self.object_analyzer.find_object_locations(frames, target_objects)
+            result["analysis_results"] = self._format_object_results(object_locations, target_objects)
+            
+        else:  # FLIGHT_OPTIMIZATION
+            # Provide general analysis of the flight
+            result["analysis_results"] = self._format_general_analysis(frames, flight_plan)
         
-        # Generate optimization suggestions
-        if high_value_areas:
-            # Suggest focusing on high-value areas
-            for area in high_value_areas[:5]:  # Limit to top 5
-                suggestions.append(OptimizationSuggestion(
-                    suggestion_type="route",
-                    location=(area.gps_coords[0], area.gps_coords[1]),
-                    description=f"Add more waypoints around GPS {area.gps_coords[0]:.4f}, {area.gps_coords[1]:.4f}",
-                    reason=f"High concentration of {', '.join(set(area.detected_objects))} detected"
-                ))
+        # Save results
+        self._save_results(result, flight_plan_file)
         
-        # Suggest optimizations based on object density
-        self._suggest_density_optimizations(observations, suggestions, mission_objective)
+        return result
+    
+    def _calculate_flight_statistics(self, flight_plan: FlightPlan, 
+                                   frames: List[FlightFrame]) -> Dict[str, Any]:
+        """Calculate basic statistics about the flight"""
         
-        # Create optimized flight plan
-        optimized_plan = self._create_optimized_plan(
-            original_plan, high_value_areas, obstacles
+        # Flight plan statistics
+        total_distance = 0
+        if len(flight_plan.points) > 1:
+            for i in range(len(flight_plan.points) - 1):
+                total_distance += haversine_distance(
+                    flight_plan.points[i].lat, flight_plan.points[i].lon,
+                    flight_plan.points[i+1].lat, flight_plan.points[i+1].lon
+                )
+        
+        # Detection statistics
+        total_detections = sum(len(frame.detected_objects) for frame in frames)
+        frames_with_detections = len([f for f in frames if f.detected_objects])
+        
+        # Object type statistics
+        all_objects = [obj.label for frame in frames for obj in frame.detected_objects]
+        unique_object_types = list(set(all_objects))
+        object_counts = {obj_type: all_objects.count(obj_type) for obj_type in unique_object_types}
+        
+        return {
+            "original_waypoints": len(flight_plan.points),
+            "flight_distance_meters": total_distance,
+            "total_frames": len(frames),
+            "frames_with_detections": frames_with_detections,
+            "total_objects_detected": total_detections,
+            "unique_object_types": len(unique_object_types),
+            "object_type_counts": object_counts
+        }
+    
+    def _format_corridor_results(self, corridor_plan: CorridorSurveyPlan) -> Dict[str, Any]:
+        """Format corridor survey results"""
+        return {
+            "corridor_width_meters": corridor_plan.corridor_width_meters,
+            "survey_waypoints": len(corridor_plan.waypoints),
+            "coverage_area_square_meters": corridor_plan.coverage_area_sqm,
+            "total_survey_distance_meters": corridor_plan.flight_distance_meters,
+            "waypoint_locations": [
+                {"lat": wp.lat, "lon": wp.lon, "name": wp.name} 
+                for wp in corridor_plan.waypoints
+            ],
+            "summary": f"Generated {len(corridor_plan.waypoints)} waypoints to survey {corridor_plan.corridor_width_meters}m corridor around original flight path"
+        }
+    
+    def _format_photo_results(self, recommendations: List[PhotoSegmentRecommendation]) -> Dict[str, Any]:
+        """Format photo optimization results"""
+        
+        total_photos_estimated = sum(
+            rec.distance_meters / 5.0 * rec.recommended_fps  # Assume 5 m/s speed
+            for rec in recommendations
         )
         
-        return optimized_plan, suggestions
+        avg_fps = np.mean([rec.recommended_fps for rec in recommendations]) if recommendations else 0
+        
+        return {
+            "total_segments_analyzed": len(recommendations),
+            "average_recommended_fps": avg_fps,
+            "total_estimated_photos": int(total_photos_estimated),
+            "segment_recommendations": [
+                {
+                    "segment": f"Segment {i+1}",
+                    "start_location": {"lat": rec.segment_start[0], "lon": rec.segment_start[1]},
+                    "end_location": {"lat": rec.segment_end[0], "lon": rec.segment_end[1]},
+                    "distance_meters": rec.distance_meters,
+                    "objects_found": rec.objects_found,
+                    "unique_object_types": rec.unique_object_types,
+                    "recommended_fps": rec.recommended_fps,
+                    "reasoning": rec.reasoning
+                }
+                for i, rec in enumerate(recommendations)
+            ],
+            "summary": f"Analyzed {len(recommendations)} flight segments. Recommend variable photo rate averaging {avg_fps:.1f} fps based on object density found during flight."
+        }
     
-    def _suggest_density_optimizations(self, 
-                                     observations: List[SceneObservation],
-                                     suggestions: List[OptimizationSuggestion],
-                                     mission_objective: MissionObjective):
-        """Suggest optimizations based on object density"""
+    def _format_object_results(self, locations: List[ObjectLocation], 
+                             target_objects: List[str]) -> Dict[str, Any]:
+        """Format object location results"""
         
-        # Group observations by area
-        area_groups = {}
-        for obs in observations:
-            area_key = (round(obs.gps_coords[0], 4), round(obs.gps_coords[1], 4))
-            if area_key not in area_groups:
-                area_groups[area_key] = []
-            area_groups[area_key].append(obs)
+        # Group by object type
+        objects_by_type = {}
+        for location in locations:
+            if location.object_type not in objects_by_type:
+                objects_by_type[location.object_type] = []
+            objects_by_type[location.object_type].append(location)
         
-        # Find high-density target areas
-        for area, obs_list in area_groups.items():
-            if len(obs_list) >= 3:  # At least 3 frames in this area
-                target_detections = 0
-                for obs in obs_list:
-                    if any(target in obs.detected_objects for target in mission_objective.target_objects):
-                        target_detections += 1
-                
-                density_ratio = target_detections / len(obs_list)
-                
-                if density_ratio > 0.5:  # More than 50% have targets
-                    suggestions.append(OptimizationSuggestion(
-                        suggestion_type="high_density",
-                        location=area,
-                        description=f"Focus more time around GPS {area[0]:.4f}, {area[1]:.4f}",
-                        reason=f"High target density: {target_detections}/{len(obs_list)} frames contain targets"
-                    ))
-                elif density_ratio == 0:  # No targets found
-                    suggestions.append(OptimizationSuggestion(
-                        suggestion_type="low_priority",
-                        location=area,
-                        description=f"Reduce coverage around GPS {area[0]:.4f}, {area[1]:.4f}",
-                        reason=f"No targets found in {len(obs_list)} frames in this area"
-                    ))
+        return {
+            "target_objects_searched": target_objects,
+            "total_locations_found": len(locations),
+            "object_types_found": list(objects_by_type.keys()),
+            "locations_by_type": {
+                obj_type: [
+                    {
+                        "gps_location": {"lat": loc.gps_location[0], "lon": loc.gps_location[1]},
+                        "frame_id": loc.frame_id,
+                        "confidence": loc.confidence
+                    }
+                    for loc in locs
+                ]
+                for obj_type, locs in objects_by_type.items()
+            },
+            "summary": f"Found {len(locations)} instances of target objects across {len(set(loc.object_type for loc in locations))} different types."
+        }
     
-    def _create_optimized_plan(self,
-                             original_plan: FlightPlan,
-                             high_value_areas: List[SceneObservation],
-                             obstacles: List[SceneObservation]) -> FlightPlan:
-        """Create optimized flight plan"""
-        optimized_points = []
+    def _format_general_analysis(self, frames: List[FlightFrame], 
+                               flight_plan: FlightPlan) -> Dict[str, Any]:
+        """Format general flight analysis"""
         
-        # Start with original points
-        for point in original_plan.points:
-            # Check if point is near an obstacle
-            near_obstacle = False
-            for obstacle in obstacles:
-                distance = haversine_distance(
-                    point.lat, point.lon,
-                    obstacle.gps_coords[0], obstacle.gps_coords[1]
-                )
-                if distance < 100:  # 100 meters
-                    near_obstacle = True
-                    break
-            
-            if not near_obstacle:
-                optimized_points.append(point)
+        # Find areas with highest object density
+        high_activity_frames = [f for f in frames if len(f.detected_objects) >= 2]
         
-        # Add extra waypoints near high-value areas
-        for area in high_value_areas[:3]:  # Limit to top 3 areas
-            center_lat, center_lon = area.gps_coords[0], area.gps_coords[1]
-            
-            # Calculate offset in meters and convert to degrees
-            offset_meters = 50  # 50 meters
-            lat_offset, lon_offset = meters_to_degrees(offset_meters, center_lat)
-            
-            # Add search pattern around high-value area
-            for angle in [0, 90, 180, 270]:
-                angle_rad = np.radians(angle)
-                lat_delta = lat_offset * np.cos(angle_rad)
-                lon_delta = lon_offset * np.sin(angle_rad)
-                
-                new_point = FlightPoint(
-                    lat=center_lat + lat_delta,
-                    lon=center_lon + lon_delta,
-                    alt=100,
-                    name=f"search_pattern_{angle}_frame{area.frame_id}"
-                )
-                optimized_points.append(new_point)
-        
-        return FlightPlan(
-            points=optimized_points,
-            name=f"{original_plan.name}_optimized",
-            description=f"Optimized for: {', '.join(set([obj for area in high_value_areas for obj in area.detected_objects])) if high_value_areas else 'general surveillance'}"
-        )
+        return {
+            "flight_analysis": "General optimization analysis",
+            "high_activity_locations": [
+                {
+                    "frame_id": frame.frame_id,
+                    "gps_location": {"lat": frame.gps_coords[0], "lon": frame.gps_coords[1]},
+                    "objects_detected": len(frame.detected_objects),
+                    "object_types": [obj.label for obj in frame.detected_objects]
+                }
+                for frame in high_activity_frames[:10]  # Top 10
+            ],
+            "summary": f"Identified {len(high_activity_frames)} high-activity locations with 2+ objects detected."
+        }
     
-    def save_flight_plan_as_kml(self, flight_plan: FlightPlan, output_path: str):
-        """Save flight plan as KML file"""
+    def _save_results(self, results: Dict[str, Any], original_file: str):
+        """Save analysis results"""
+        
+        # Save main results
+        output_file = get_hawkeye_output_path(f"flight_analysis_{Path(original_file).stem}.json")
+        with open(output_file, 'w') as f:
+            json.dump(results, f, indent=2)
+        
+        results["output_file"] = output_file
+        logger.info(f"📄 Analysis saved to: {output_file}")
+        
+        # Generate KML file if corridor survey was requested
+        if results["query_type"] == "corridor_survey":
+            self._save_corridor_kml(results, original_file)
+
+    def _save_corridor_kml(self, results: Dict[str, Any], original_file: str):
+        """Save corridor survey as KML file"""
+        
+        kml_filename = f"corridor_survey_{Path(original_file).stem}.kml"
+        kml_path = get_hawkeye_output_path(kml_filename)
+        
+        waypoints = results["analysis_results"]["waypoint_locations"]
+        corridor_width = results["analysis_results"]["corridor_width_meters"]
+        
         kml_content = f'''<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
   <Document>
-    <name>{flight_plan.name}</name>
-    <description>{flight_plan.description}</description>
-    <Style id="lineStyle">
-      <LineStyle>
-        <color>ff0000ff</color>
-        <width>4</width>
-      </LineStyle>
-    </Style>
-    <Style id="waypointStyle">
+    <name>Corridor Survey - {corridor_width}m width</name>
+    <description>Systematic survey pattern around original flight path</description>
+    
+    <Style id="corridorWaypointStyle">
       <IconStyle>
-        <color>ff00ff00</color>
+        <color>ff0080ff</color>
         <scale>1.0</scale>
         <Icon>
-          <href>http://maps.google.com/mapfiles/kml/paddle/grn-circle.png</href>
+          <href>http://maps.google.com/mapfiles/kml/paddle/orange-circle.png</href>
         </Icon>
       </IconStyle>
     </Style>
+    
+    <Style id="corridorPathStyle">
+      <LineStyle>
+        <color>7f0080ff</color>
+        <width>3</width>
+      </LineStyle>
+    </Style>
+    
     <Folder>
-      <name>Waypoints</name>
+      <name>Corridor Survey Waypoints</name>
 '''
         
-        # Add waypoints as placemarks
-        for i, point in enumerate(flight_plan.points):
-            altitude = point.alt if point.alt else 100
+        # Add waypoints
+        for wp in waypoints:
             kml_content += f'''      <Placemark>
-        <name>{point.name if point.name else f"WP{i+1}"}</name>
-        <description>GPS: {point.lat:.6f}, {point.lon:.6f}</description>
-        <styleUrl>#waypointStyle</styleUrl>
+        <name>{wp['name']}</name>
+        <description>Corridor survey waypoint: {wp['lat']:.6f}, {wp['lon']:.6f}</description>
+        <styleUrl>#corridorWaypointStyle</styleUrl>
         <Point>
-          <coordinates>{point.lon},{point.lat},{altitude}</coordinates>
+          <coordinates>{wp['lon']},{wp['lat']},100</coordinates>
           <altitudeMode>relativeToGround</altitudeMode>
         </Point>
       </Placemark>
 '''
         
         kml_content += '''    </Folder>
+    
     <Placemark>
-      <name>Flight Path</name>
-      <styleUrl>#lineStyle</styleUrl>
+      <name>Corridor Survey Path</name>
+      <description>Systematic coverage pattern</description>
+      <styleUrl>#corridorPathStyle</styleUrl>
       <LineString>
         <extrude>1</extrude>
         <tessellate>1</tessellate>
@@ -578,9 +784,8 @@ class FlightPlanOptimizer:
 '''
         
         # Add path coordinates
-        for point in flight_plan.points:
-            altitude = point.alt if point.alt else 100
-            kml_content += f'          {point.lon},{point.lat},{altitude}\n'
+        for wp in waypoints:
+            kml_content += f'          {wp["lon"]},{wp["lat"]},100\n'
         
         kml_content += '''        </coordinates>
       </LineString>
@@ -588,531 +793,326 @@ class FlightPlanOptimizer:
   </Document>
 </kml>'''
         
-        # Save to file
-        ensure_output_directory()
-        with open(output_path, 'w') as f:
+        with open(kml_path, 'w') as f:
             f.write(kml_content)
         
-        logger.info(f"✅ Saved optimized flight plan to: {output_path}")
-
-    def save_flight_plan_as_png(self, flight_plan: FlightPlan, output_filename: str, 
-                               detection_locations: List[Tuple[float, float, str]] = None):
-        """Save flight plan as PNG map image in hawkeye_output folder"""
-        output_path = get_hawkeye_output_path(output_filename)
-        
-        try:
-            from map_extract import QGISMapGenerator
-            
-            # Create temporary KML for map generation
-            temp_kml_path = output_path.replace('.png', '_temp.kml')
-            
-            # Generate KML content
-            kml_content = f'''<?xml version="1.0" encoding="UTF-8"?>
-<kml xmlns="http://www.opengis.net/kml/2.2">
-  <Document>
-    <name>{flight_plan.name}</name>
-    <description>{flight_plan.description}</description>
-    <Style id="optimizedPathStyle">
-      <LineStyle>
-        <color>ff00ff00</color>
-        <width>6</width>
-      </LineStyle>
-    </Style>
-    <Style id="optimizedWaypointStyle">
-      <IconStyle>
-        <color>ff00ff00</color>
-        <scale>1.2</scale>
-        <Icon>
-          <href>http://maps.google.com/mapfiles/kml/paddle/grn-circle.png</href>
-        </Icon>
-      </IconStyle>
-    </Style>
-    <Style id="detectionStyle">
-      <IconStyle>
-        <color>ffff0000</color>
-        <scale>1.5</scale>
-        <Icon>
-          <href>http://maps.google.com/mapfiles/kml/paddle/red-star.png</href>
-        </Icon>
-      </IconStyle>
-    </Style>
-    <Folder>
-      <name>Optimized Waypoints</name>
-'''
-            
-            # Add waypoints
-            for i, point in enumerate(flight_plan.points):
-                altitude = point.alt if point.alt else 100
-                kml_content += f'''      <Placemark>
-        <name>{point.name if point.name else f"OPT-WP{i+1}"}</name>
-        <description>Optimized waypoint: {point.lat:.6f}, {point.lon:.6f}</description>
-        <styleUrl>#optimizedWaypointStyle</styleUrl>
-        <Point>
-          <coordinates>{point.lon},{point.lat},{altitude}</coordinates>
-          <altitudeMode>relativeToGround</altitudeMode>
-        </Point>
-      </Placemark>
-'''
-            
-            kml_content += '''    </Folder>'''
-            
-            # Add detection locations if provided
-            if detection_locations:
-                kml_content += '''
-    <Folder>
-      <name>Target Detections</name>
-'''
-                for i, (lat, lon, obj_type) in enumerate(detection_locations):
-                    kml_content += f'''      <Placemark>
-        <name>TARGET: {obj_type}</name>
-        <description>Found: {obj_type} at {lat:.6f}, {lon:.6f}</description>
-        <styleUrl>#detectionStyle</styleUrl>
-        <Point>
-          <coordinates>{lon},{lat},100</coordinates>
-          <altitudeMode>relativeToGround</altitudeMode>
-        </Point>
-      </Placemark>
-'''
-                kml_content += '''    </Folder>'''
-            
-            # Add flight path
-            kml_content += '''
-    <Placemark>
-      <name>Optimized Flight Path</name>
-      <styleUrl>#optimizedPathStyle</styleUrl>
-      <LineString>
-        <extrude>1</extrude>
-        <tessellate>1</tessellate>
-        <altitudeMode>relativeToGround</altitudeMode>
-        <coordinates>
-'''
-            
-            for point in flight_plan.points:
-                altitude = point.alt if point.alt else 100
-                kml_content += f'          {point.lon},{point.lat},{altitude}\n'
-            
-            kml_content += '''        </coordinates>
-      </LineString>
-    </Placemark>
-  </Document>
-</kml>'''
-            
-            # Save temporary KML
-            with open(temp_kml_path, 'w') as f:
-                f.write(kml_content)
-            
-            # Generate PNG map from KML
-            map_generator = QGISMapGenerator()
-            try:
-                # Create flight plan object for map generation
-                temp_plan = FlightPlan(
-                    points=flight_plan.points,
-                    name=f"{flight_plan.name}_optimized_visual",
-                    description=flight_plan.description
-                )
-                
-                # Generate map - override output to hawkeye_output folder
-                png_path = map_generator.generate_contextual_map(
-                    temp_plan, 
-                    output_filename=Path(output_path).name
-                )
-                
-                # Move the generated map to hawkeye_output if it's not already there
-                if not png_path.startswith(HAWKEYE_OUTPUT_FOLDER):
-                    import shutil
-                    dest_path = get_hawkeye_output_path(Path(png_path).name)
-                    if Path(png_path).exists():
-                        shutil.move(png_path, dest_path)
-                        png_path = dest_path
-                
-                logger.info(f"✅ Saved optimized flight plan as PNG: {png_path}")
-                
-                # Clean up temporary KML
-                try:
-                    os.remove(temp_kml_path)
-                except:
-                    pass
-                
-                return png_path
-                
-            finally:
-                map_generator.cleanup()
-                
-        except Exception as e:
-            logger.error(f"Error generating PNG flight plan: {e}")
-            # Fallback to KML if PNG generation fails
-            kml_path = output_path.replace('.png', '.kml')
-            with open(kml_path, 'w') as f:
-                f.write(kml_content)
-            logger.info(f"✅ Fallback: Saved as KML instead: {kml_path}")
-            return kml_path
-
-# =============================================================================
-# MISSION COORDINATOR
-# =============================================================================
-
-class InputBasedMissionCoordinator:
-    """Coordinate mission planning using input files"""
-    
-    def __init__(self):
-        self.parser = SimpleMissionParser()
-        self.data_processor = JSONDataProcessor()
-        self.scene_analyzer = SceneAnalyzer()
-        self.optimizer = FlightPlanOptimizer()
-        self.logger = logging.getLogger(__name__)
-    
-    def plan_mission_from_inputs(self, 
-                                flight_plan_file: str,
-                                detection_json_file: str,
-                                user_objective: str) -> Dict[str, Any]:
-        """
-        Main mission planning function using input files
-        
-        Args:
-            flight_plan_file: Path to KML flight plan file
-            detection_json_file: Path to JSON detection results
-            user_objective: User's mission objective
-            
-        Returns:
-            Comprehensive mission plan with observations and suggestions
-        """
-        self.logger.info(f"🚁 Starting input-based mission planning")
-        self.logger.info(f"📋 Objective: {user_objective}")
-        
-        # Parse objective
-        mission_objective = self.parser.parse_objective(user_objective)
-        self.logger.info(f"🎯 Mission type: {mission_objective.mission_type.value}")
-        self.logger.info(f"🔍 Target objects: {mission_objective.target_objects}")
-        
-        # Load flight plan
-        original_plan = FlightPlanParser.parse_file(flight_plan_file)
-        self.logger.info(f"📍 Loaded flight plan with {len(original_plan.points)} waypoints")
-        
-        # Load detection results
-        frame_data_list = self.data_processor.load_detection_results(detection_json_file)
-        
-        # Map frames to GPS coordinates
-        frame_data_list = self.data_processor.map_frames_to_gps(frame_data_list, original_plan)
-        
-        # Process frame data into observations
-        observations = self.scene_analyzer.process_frame_data(frame_data_list, mission_objective)
-        
-        # Optimize flight plan
-        optimized_plan, suggestions = self.optimizer.optimize_flight_plan(
-            original_plan, observations, mission_objective
-        )
-        
-        # Generate report
-        report = self._generate_report(
-            mission_objective, original_plan, optimized_plan,
-            observations, suggestions, frame_data_list
-        )
-        
-        # Save optimized flight plan as PNG map
-        optimized_png_path = f"optimized_{Path(flight_plan_file).stem}_flight_plan.png"
-        
-        # Extract target detection locations for visualization
-        target_detections = []
-        for obs in observations:
-            if obs.relevance_score > 0.7:  # High relevance observations
-                for obj in obs.detected_objects:
-                    if obj in mission_objective.target_objects:
-                        target_detections.append((obs.gps_coords[0], obs.gps_coords[1], obj))
-        
-        png_path = self.optimizer.save_flight_plan_as_png(
-            optimized_plan, 
-            optimized_png_path,
-            detection_locations=target_detections
-        )
-        report['optimized_flight_plan_file'] = png_path
-        
-        # Generate context map
-        try:
-            map_path = generate_flight_context_map(
-                flight_plan_file,
-                output_filename=f"{original_plan.name}_context_map.png",
-                show_coordinates=False,
-                export_coordinates=True
-            )
-            report['context_map_file'] = map_path
-            self.logger.info(f"🗺️  Generated context map: {map_path}")
-        except Exception as e:
-            self.logger.warning(f"Could not generate context map: {e}")
-        
-        self.logger.info("✅ Mission planning complete!")
-        
-        return report
-    
-    def _generate_report(self,
-                        mission_objective: MissionObjective,
-                        original_plan: FlightPlan,
-                        optimized_plan: FlightPlan,
-                        observations: List[SceneObservation],
-                        suggestions: List[OptimizationSuggestion],
-                        frame_data_list: List[FrameData]) -> Dict[str, Any]:
-        """Generate comprehensive mission report"""
-        
-        # Format observations for output
-        formatted_observations = []
-        for obs in observations:
-            formatted_observations.append({
-                "frame_id": obs.frame_id,
-                "timestamp": obs.timestamp,
-                "gps_location": {
-                    "latitude": obs.gps_coords[0],
-                    "longitude": obs.gps_coords[1],
-                    "altitude": obs.gps_coords[2]
-                },
-                "detected_objects": obs.detected_objects,
-                "description": obs.scene_description,
-                "relevance_to_mission": obs.relevance_score
-            })
-        
-        # Format suggestions
-        formatted_suggestions = []
-        for sugg in suggestions:
-            formatted_suggestions.append({
-                "type": sugg.suggestion_type,
-                "location": {
-                    "latitude": sugg.location[0] if sugg.location else None,
-                    "longitude": sugg.location[1] if sugg.location else None
-                },
-                "suggestion": sugg.description,
-                "reasoning": sugg.reason
-            })
-        
-        # Key findings summary
-        key_findings = []
-        
-        # Find target objects
-        target_found_locations = []
-        for obs in observations:
-            if any(target in obs.detected_objects for target in mission_objective.target_objects):
-                target_found_locations.append(obs)
-                key_findings.append(
-                    f"✅ {', '.join([t for t in mission_objective.target_objects if t in obs.detected_objects])} "
-                    f"found at GPS {obs.gps_coords[0]:.6f}, {obs.gps_coords[1]:.6f} (Frame {obs.frame_id})"
-                )
-        
-        # Object statistics
-        all_detected_objects = {}
-        for obs in observations:
-            for obj in obs.detected_objects:
-                if obj not in all_detected_objects:
-                    all_detected_objects[obj] = 0
-                all_detected_objects[obj] += 1
-        
-        if all_detected_objects:
-            key_findings.append(f"📊 Objects detected: {', '.join([f'{obj} ({count}x)' for obj, count in sorted(all_detected_objects.items(), key=lambda x: x[1], reverse=True)])}")
-        
-        # Flight plan summary
-        center_lat, center_lon = original_plan.get_center_point()
-        area_height, area_width = original_plan.get_area_size_meters()
-        
-        return {
-            "mission_objective": {
-                "user_goal": mission_objective.user_goal,
-                "mission_type": mission_objective.mission_type.value,
-                "target_objects": mission_objective.target_objects
-            },
-            "input_data": {
-                "total_frames_processed": len(frame_data_list),
-                "frames_with_detections": len([f for f in frame_data_list if f.detected_objects]),
-                "total_detections": sum(len(f.detected_objects) for f in frame_data_list)
-            },
-            "flight_plans": {
-                "original_waypoints": len(original_plan.points),
-                "optimized_waypoints": len(optimized_plan.points),
-                "optimization_applied": len(optimized_plan.points) != len(original_plan.points),
-                "center_coordinates": f"{center_lat:.6f}, {center_lon:.6f}",
-                "area_size_meters": f"{area_width:.1f}m × {area_height:.1f}m"
-            },
-            "key_findings": key_findings,
-            "scene_observations": formatted_observations,
-            "optimization_suggestions": formatted_suggestions,
-            "summary": {
-                "total_observations": len(observations),
-                "high_relevance_scenes": len([o for o in observations if o.relevance_score > 0.7]),
-                "target_objects_found": len(target_found_locations) > 0,
-                "suggested_optimizations": len(suggestions)
-            }
-        }
+        results["kml_file"] = kml_path
+        logger.info(f"🗺️  Corridor survey KML saved: {kml_path}")
 
 # =============================================================================
 # MAIN INTERFACE
 # =============================================================================
 
 def main():
-    """Main execution function"""
-    print("🚁 Input-Based Drone Mission Planning System")
-    print("=" * 60)
-    print("📊 Processes: KML flight plan + JSON detection results + User query")
-    print("📤 Outputs: Optimized flight plan + Mission report")
+    """Main execution function for single-flight analysis"""
+    print("🚁 Enhanced Single-Flight Drone Mission Analysis System")
+    print("=" * 70)
+    print("📊 Analyzes: ONE KML flight + ONE JSON detection file + YOUR query")
+    print("🎯 Provides actionable insights based on actual flight data")
     print()
     
-    # Get user inputs
-    flight_plan_file = "C:/Users/lukev/Projects/HawkEye/casita-to-camp.kml"
+    # File paths
+    # casita-to-camp.kml is associated with drone_footage_frames and drone_footage_detection_results.json
+    # panover.kml is associated with panover_frames and panover_detection_results.json
+    # dsds.kml is associated with d_s_d_s_frames and d_s_d_s_detection_results.json
+
+    flight_plan_file = "dsds.kml"
+    if not flight_plan_file:
+        flight_plan_file = "casita-to-camp.kml"  # Default for demo
+    
+    detection_json_file = "d_s_d_s_detection_results.json" #input("Enter path to JSON detection file: ").strip()
+    if not detection_json_file:
+        detection_json_file = "frame_detection_results.json"  # Default for demo
+    
+    # Check files exist
     if not Path(flight_plan_file).exists():
-        print(f"❌ File not found: {flight_plan_file}")
+        print(f"❌ Flight plan not found: {flight_plan_file}")
+        print("💡 Make sure the file path is correct and the file exists")
         return
     
-    detection_json_file = "C:/Users/lukev/Projects/HawkEye/frame_detection_results.json"
     if not Path(detection_json_file).exists():
-        print(f"❌ File not found: {detection_json_file}")
+        print(f"❌ Detection data not found: {detection_json_file}")
+        print("💡 Make sure the file path is correct and the file exists")
         return
     
-    print("\n💡 Example objectives:")
-    print('  - "Find vehicles in the area"')
-    print('  - "Survey for people and benches"')
-    print('  - "Locate cars and trucks"')
-    print('  - "Monitor furniture placement"')
-    print('  - "Search for any objects of interest"')
+    print(f"\n✅ Files loaded successfully!")
+    print(f"📁 Flight plan: {flight_plan_file}")
+    print(f"📄 Detection data: {detection_json_file}")
     
-    user_objective = "Where can I most likely find the most people?"
+    print("\n💡 What this system CAN answer with your single flight data:")
+    print('  🛤️  "Survey the area 10 meters around this flight path"')
+    print('  📸 "Should I take 8 photos every second along this route?"')
+    print('  📍 "Where were vehicles actually found during this flight?"')
+    print('  🔍 "Where can I find the most people based on this flight?"')
+    print('  🎯 "Generate an optimized flight plan based on detected objects"')
+    print()
     
-    # Run mission planning
-    coordinator = InputBasedMissionCoordinator()
+    # Get user query
+    print("❓ Enter your mission query:")
+    user_query = "Should I take 8 photos every second along this route?" #input("Query: ").strip()
+    
+    if not user_query:
+        print("❌ No query provided. Please enter a specific question about your flight.")
+        return
+    
+    print(f"\n🔄 Processing query: '{user_query}'")
+    print("⏳ Analyzing flight data and generating recommendations...")
+    
+    analyzer = SingleFlightMissionAnalyzer()
     
     try:
-        report = coordinator.plan_mission_from_inputs(
+        results = analyzer.analyze_mission(
             flight_plan_file=flight_plan_file,
             detection_json_file=detection_json_file,
-            user_objective=user_objective
+            user_query=user_query
         )
         
-        # Display results
-        print("\n" + "="*60)
-        print("📋 MISSION PLANNING REPORT")
-        print("="*60)
+        # Display results based on query type
+        print(f"\n{'='*70}")
+        print("📋 MISSION ANALYSIS RESULTS")
+        print('='*70)
         
-        print(f"\n🎯 Mission: {report['mission_objective']['user_goal']}")
-        print(f"📍 Type: {report['mission_objective']['mission_type']}")
-        print(f"🔍 Targets: {', '.join(report['mission_objective']['target_objects'])}")
+        print(f"\n🎯 Your Query: {results['query']}")
+        print(f"📋 Analysis Type: {results['query_type'].replace('_', ' ').title()}")
         
-        # Input data summary
-        input_data = report['input_data']
-        print(f"\n📊 Input Data Summary:")
-        print(f"   Total frames processed: {input_data['total_frames_processed']}")
-        print(f"   Frames with detections: {input_data['frames_with_detections']}")
-        print(f"   Total detections: {input_data['total_detections']}")
+        # Flight statistics
+        stats = results['flight_statistics']
+        print(f"\n📊 Flight Data Summary:")
+        print(f"   • Original waypoints: {stats['original_waypoints']}")
+        print(f"   • Flight distance: {stats['flight_distance_meters']:.0f} meters")
+        print(f"   • Total frames analyzed: {stats['total_frames']}")
+        print(f"   • Frames with objects: {stats['frames_with_detections']}")
+        print(f"   • Total objects detected: {stats['total_objects_detected']}")
+        print(f"   • Unique object types: {stats['unique_object_types']}")
         
-        # Flight plan info
-        flight_info = report['flight_plans']
-        print(f"\n🗺️  Flight Area Information:")
-        print(f"   Center: {flight_info['center_coordinates']}")
-        print(f"   Area Size: {flight_info['area_size_meters']}")
-        print(f"   Original Waypoints: {flight_info['original_waypoints']}")
-        print(f"   Optimized Waypoints: {flight_info['optimized_waypoints']}")
-        print(f"   Optimization Applied: {'Yes' if flight_info['optimization_applied'] else 'No'}")
+        if stats['object_type_counts']:
+            top_objects = dict(list(stats['object_type_counts'].items())[:5])
+            print(f"   • Top objects found: {top_objects}")
         
-        print("\n🔑 KEY FINDINGS:")
-        if report['key_findings']:
-            for finding in report['key_findings']:
-                print(f"  {finding}")
+        # Analysis results
+        analysis = results['analysis_results']
+        print(f"\n🔍 Analysis Results:")
+        
+        if results['query_type'] == 'corridor_survey':
+            print(f"   🛤️  Corridor Width: {analysis['corridor_width_meters']}m")
+            print(f"   📍 Survey Waypoints Generated: {analysis['survey_waypoints']}")
+            print(f"   📐 Coverage Area: {analysis['coverage_area_square_meters']:.0f} square meters")
+            print(f"   📏 Total Survey Distance: {analysis.get('total_survey_distance_meters', 0):.0f} meters")
+            
+            if 'kml_file' in results:
+                print(f"   📄 KML File: {Path(results['kml_file']).name}")
+                print(f"   💡 Load the KML file in Google Earth to visualize the corridor survey pattern")
+                
+        elif results['query_type'] == 'photo_optimization':
+            print(f"   📸 Flight Segments Analyzed: {analysis['total_segments_analyzed']}")
+            print(f"   📊 Average Recommended FPS: {analysis['average_recommended_fps']:.1f}")
+            print(f"   🖼️  Total Estimated Photos: {analysis['total_estimated_photos']}")
+            
+            print(f"\n   📸 Photo Recommendations by Segment:")
+            for i, seg in enumerate(analysis['segment_recommendations'][:5], 1):
+                print(f"      {i}. {seg['segment']}: {seg['recommended_fps']} fps")
+                print(f"         Reason: {seg['reasoning']}")
+                
+        elif results['query_type'] == 'object_location':
+            print(f"   🔍 Objects Searched: {', '.join(analysis['target_objects_searched'])}")
+            print(f"   📍 Total Locations Found: {analysis['total_locations_found']}")
+            
+            if analysis['object_types_found']:
+                print(f"   🎯 Object Types Discovered: {', '.join(analysis['object_types_found'])}")
+                
+                print(f"\n   📍 Object Locations:")
+                for obj_type, locations in analysis['locations_by_type'].items():
+                    print(f"      • {obj_type}: {len(locations)} locations")
+                    for loc in locations[:3]:  # Show first 3 locations
+                        gps = loc['gps_location']
+                        print(f"        - GPS: {gps['lat']:.6f}, {gps['lon']:.6f} (Frame {loc['frame_id']})")
+            else:
+                print(f"   ❌ No target objects found in the flight data")
+                
+        else:  # general analysis
+            high_activity = analysis.get('high_activity_locations', [])
+            print(f"   🔥 High-Activity Locations: {len(high_activity)}")
+            
+            if high_activity:
+                print(f"\n   📍 Top Activity Areas:")
+                for i, loc in enumerate(high_activity[:5], 1):
+                    gps = loc['gps_location']
+                    print(f"      {i}. Frame {loc['frame_id']}: {loc['objects_detected']} objects")
+                    print(f"         GPS: {gps['lat']:.6f}, {gps['lon']:.6f}")
+                    print(f"         Objects: {', '.join(loc['object_types'])}")
+        
+        print(f"\n📄 Summary: {analysis['summary']}")
+        
+        # Output files
+        print(f"\n📁 Generated Files:")
+        print(f"   📊 Detailed Analysis: {Path(results['output_file']).name}")
+        
+        if 'kml_file' in results:
+            print(f"   🗺️  KML Flight Plan: {Path(results['kml_file']).name}")
+        
+        print(f"\n📂 All files saved to: {HAWKEYE_OUTPUT_FOLDER}/")
+        print(f"\n✅ Analysis completed successfully!")
+        
+        # Actionable recommendations
+        print(f"\n💡 ACTIONABLE INSIGHTS:")
+        if results['query_type'] == 'corridor_survey':
+            print(f"   • Use the generated {analysis['survey_waypoints']} waypoints for systematic area coverage")
+            print(f"   • Load the KML file into your drone flight planning software")
+            print(f"   • This pattern will cover {analysis['coverage_area_square_meters']:.0f} sq meters efficiently")
+            
+        elif results['query_type'] == 'photo_optimization':
+            avg_fps = analysis['average_recommended_fps']
+            if avg_fps > 5:
+                print(f"   • High object density detected - use {avg_fps:.1f} fps for detailed capture")
+            elif avg_fps > 3:
+                print(f"   • Moderate activity - {avg_fps:.1f} fps provides good balance")
+            else:
+                print(f"   • Low activity area - {avg_fps:.1f} fps conserves storage while capturing key data")
+            print(f"   • Estimated {analysis['total_estimated_photos']} photos for complete coverage")
+            
+        elif results['query_type'] == 'object_location':
+            if analysis['total_locations_found'] > 0:
+                print(f"   • {analysis['total_locations_found']} target objects found at specific GPS coordinates")
+                print(f"   • Focus future flights on these high-value areas")
+                print(f"   • Use GPS coordinates for ground team navigation")
+            else:
+                print(f"   • No target objects found - consider expanding search area or adjusting detection criteria")
+                
         else:
-            print("  No specific targets detected in the processed frames")
-        
-        print("\n📊 SUMMARY:")
-        summary = report['summary']
-        print(f"  Scene observations: {summary['total_observations']}")
-        print(f"  High relevance scenes: {summary['high_relevance_scenes']}")
-        print(f"  Target objects found: {'Yes' if summary['target_objects_found'] else 'No'}")
-        print(f"  Optimization suggestions: {summary['suggested_optimizations']}")
-        
-        if report['optimization_suggestions']:
-            print("\n💡 OPTIMIZATION SUGGESTIONS:")
-            for i, sugg in enumerate(report['optimization_suggestions'][:5], 1):
-                print(f"\n  {i}. {sugg['suggestion']}")
-                print(f"     Reason: {sugg['reasoning']}")
-                if sugg['location']['latitude']:
-                    print(f"     Location: {sugg['location']['latitude']:.6f}, {sugg['location']['longitude']:.6f}")
-        
-        # Show some example observations
-        if report['scene_observations']:
-            print(f"\n📸 Sample Observations (showing first 5):")
-            for i, obs in enumerate(report['scene_observations'][:5], 1):
-                print(f"\n  {i}. {obs['description']}")
-                print(f"     GPS: {obs['gps_location']['latitude']:.6f}, {obs['gps_location']['longitude']:.6f}")
-                print(f"     Relevance: {obs['relevance_to_mission']:.2f}")
-        
-        # Save detailed report to hawkeye_output
-        output_file = get_hawkeye_output_path(f"mission_report_{Path(flight_plan_file).stem}.json")
-        with open(output_file, 'w') as f:
-            json.dump(report, f, indent=2)
-        print(f"\n📄 Detailed report saved to: {output_file}")
-        
-        # Show generated files
-        if 'optimized_flight_plan_file' in report:
-            print(f"✅ Optimized flight plan saved to: {report['optimized_flight_plan_file']}")
-            print(f"   Visual PNG map showing optimized route and target locations!")
-        
-        if 'context_map_file' in report:
-            print(f"🗺️  Context map saved to: {report['context_map_file']}")
-            print(f"   Visual map showing flight area and surrounding geography")
-        
-        print(f"\n🎉 Mission planning complete!")
-        print(f"📁 All output files saved to: {HAWKEYE_OUTPUT_FOLDER}/")
-        print(f"   Check the folder for your optimized flight plan and detailed analysis.")
+            if len(analysis.get('high_activity_locations', [])) > 0:
+                print(f"   • Focus on {len(analysis['high_activity_locations'])} high-activity areas for future missions")
+                print(f"   • These locations had the most object detections during your flight")
         
     except Exception as e:
-        print(f"\n❌ Error: {e}")
-        logger.error(f"Mission planning failed: {e}", exc_info=True)
+        print(f"\n❌ Analysis failed: {e}")
+        logger.error(f"Analysis failed: {e}", exc_info=True)
+        print("💡 Please check your input files and try again")
 
-def demo_with_provided_data():
-    """Demo function using the provided sample data"""
-    print("🧪 Running demo with provided sample data...")
-    
-    # Use the provided files from your uploads
-    flight_plan_file = "casita-to-camp.kml"  # Your KML file
-    detection_json_file = "frame_detection_results.json"  # Your JSON detection results
-    user_objective = "Find vehicles in the area"  # Example objective based on your data
-    
-    # Check if files exist
-    if not Path(flight_plan_file).exists():
-        print(f"❌ Demo file not found: {flight_plan_file}")
-        print("💡 Make sure the KML file is in the current directory")
-        return
-    
-    if not Path(detection_json_file).exists():
-        print(f"❌ Demo file not found: {detection_json_file}")
-        print("💡 Make sure the JSON file is in the current directory")
-        return
-    
-    print(f"📁 Using flight plan: {flight_plan_file}")
-    print(f"📄 Using detection data: {detection_json_file}")
-    print(f"🎯 Mission: {user_objective}")
+def interactive_demo():
+    """Interactive demo that shows system capabilities"""
+    print("🧪 Interactive Demo Mode")
+    print("=" * 50)
+    print("This demo shows what the system can do with sample data.")
     print()
     
-    # Run mission planning
-    coordinator = InputBasedMissionCoordinator()
+    # Check for demo files
+    demo_files = {
+        "flight_plan": "casita-to-camp.kml",
+        "detections": "frame_detection_results.json"
+    }
+    
+    missing_files = []
+    for file_type, filename in demo_files.items():
+        if not Path(filename).exists():
+            missing_files.append(filename)
+    
+    if missing_files:
+        print("❌ Demo files not found:")
+        for file in missing_files:
+            print(f"   • {file}")
+        print("\n💡 Make sure demo files are in the current directory to run the demo.")
+        return
+    
+    print("✅ Demo files found!")
+    print(f"📁 Flight plan: {demo_files['flight_plan']}")
+    print(f"📄 Detection data: {demo_files['detections']}")
+    
+    # Sample queries to demonstrate
+    sample_queries = [
+        "Survey the area 15 meters around this flight path",
+        "Should I take 6 photos every second along this route?",
+        "Where were people actually found during this flight?",
+        "Find all vehicles detected in this flight"
+    ]
+    
+    print("\n📋 Available demo queries:")
+    for i, query in enumerate(sample_queries, 1):
+        print(f"   {i}. {query}")
+    
+    print("\n❓ Choose a demo query (1-4) or enter your own:")
+    user_input = input("Selection: ").strip() # <- This is the query / objective
+    
+    # Parse user selection
+    if user_input.isdigit() and 1 <= int(user_input) <= len(sample_queries):
+        selected_query = sample_queries[int(user_input) - 1]
+    elif user_input:
+        selected_query = user_input
+    else:
+        print("❌ No query selected. Exiting demo.")
+        return
+    
+    print(f"\n🔄 Running demo with query: '{selected_query}'")
+    
+    analyzer = SingleFlightMissionAnalyzer()
     
     try:
-        report = coordinator.plan_mission_from_inputs(
-            flight_plan_file=flight_plan_file,
-            detection_json_file=detection_json_file,
-            user_objective=user_objective
+        results = analyzer.analyze_mission(
+            flight_plan_file=demo_files['flight_plan'],
+            detection_json_file=demo_files['detections'],
+            user_query=selected_query
         )
         
-        print("🎉 Demo completed successfully!")
-        print(f"📄 Report saved to: {report.get('optimized_flight_plan_file', 'N/A')}")
-        
-        # Quick summary
-        summary = report['summary']
-        print(f"\n📊 Quick Summary:")
-        print(f"   - Processed {report['input_data']['total_frames_processed']} frames")
-        print(f"   - Found {summary['total_observations']} relevant observations")
-        print(f"   - Generated {summary['suggested_optimizations']} optimization suggestions")
-        print(f"   - Target objects found: {'Yes' if summary['target_objects_found'] else 'No'}")
-        print(f"\n📁 All files saved to: {HAWKEYE_OUTPUT_FOLDER}/")
+        print("\n🎉 Demo completed successfully!")
+        print(f"📊 Query Type: {results['query_type'].replace('_', ' ').title()}")
+        print(f"📄 Analysis saved to: {Path(results['output_file']).name}")
+        print(f"📁 Check the '{HAWKEYE_OUTPUT_FOLDER}' folder for detailed results")
         
     except Exception as e:
         print(f"❌ Demo failed: {e}")
         logger.error(f"Demo failed: {e}", exc_info=True)
 
+def demo():
+    """Demo function using provided sample data"""
+    print("🧪 Running single-flight analysis demo...")
+    
+    flight_plan_file = "casita-to-camp.kml"
+    detection_json_file = "frame_detection_results.json"
+    
+    if not Path(flight_plan_file).exists() or not Path(detection_json_file).exists():
+        print("❌ Demo files not found. Make sure KML and JSON files are in current directory.")
+        print("💡 Or run the main program to enter your own file paths.")
+        return
+    
+    # Show available demo options
+    print("📋 Demo options:")
+    print("  1. Quick demo with corridor survey")
+    print("  2. Interactive demo with query selection")
+    
+    choice = input("Enter choice (1 or 2): ").strip()
+    
+    if choice == "2":
+        interactive_demo()
+    else:
+        # Quick demo with corridor survey
+        analyzer = SingleFlightMissionAnalyzer()
+        test_query = "Survey the area 12 meters around this flight path"
+        
+        try:
+            results = analyzer.analyze_mission(
+                flight_plan_file=flight_plan_file,
+                detection_json_file=detection_json_file,
+                user_query=test_query
+            )
+            
+            print("🎉 Demo completed!")
+            print(f"📊 Analyzed {results['flight_statistics']['total_frames']} frames")
+            
+            if results['query_type'] == 'corridor_survey':
+                analysis = results['analysis_results']
+                print(f"🛤️  Generated {analysis['survey_waypoints']} corridor waypoints")
+                print(f"📐 Coverage area: {analysis['coverage_area_square_meters']:.0f} sq meters")
+            
+            print(f"📁 Files saved to: {HAWKEYE_OUTPUT_FOLDER}/")
+            
+        except Exception as e:
+            print(f"❌ Demo failed: {e}")
+
 if __name__ == "__main__":
     import sys
     
     if len(sys.argv) > 1 and sys.argv[1] == "--demo":
-        demo_with_provided_data()
+        demo()
+    elif len(sys.argv) > 1 and sys.argv[1] == "--interactive":
+        interactive_demo()
     else:
         main()
