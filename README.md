@@ -18,7 +18,8 @@ Ouput: Drone flight path that satisfies user objective. See results folder.
 
 Example objectives / queries:
 
-✅ "Find people in this area" → Object search map with numbered waypoints
+✅ "Find people in this area" → Object search map with numbered waypoints \n
+
 ✅ "Survey 15 meters around this path" → Corridor survey map
 ✅ "Where are vehicles most likely?" → Vehicle-focused search map
 ✅ "Locate furniture and benches" → Multi-object search patterns
