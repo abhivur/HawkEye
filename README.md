@@ -1,8 +1,8 @@
-# HawkEye 
+# HawkEye
 ## Smart Drone Flight Planning System
 ### By Luke Voinov and Abhinav Vurakaranam
 
-Thank you to Dr. Camp for teaching ECE 5393 091: Drone Communications at SMU in Taos!
+Thank you to Dr. Camp for teaching "ECE 5393 091: Drone Communications" at SMU in Taos!
 
 ### Results Folder
 Contains KML files for each route. Enhanced analysis JSON files analyze flight footage to find where people were detected, then creates a 4-point adaptive waypoint plan around that location for focused reinspection. Drone footage files identify likely human locations from drone footage and generates a focused 4-waypoint re-survey plan centered on the detected person. Finally a PNG which shows the optimized flight route + heatmap.
