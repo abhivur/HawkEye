@@ -4,6 +4,8 @@
 
 Thank you to Dr. Camp for teaching ECE 5393 091: Drone Communications at SMU in Taos!
 
+### Results Folder
+Contains KML files for each route. Enhanced analysis JSON files analyze flight footage to find where people were detected, then creates a 4-point adaptive waypoint plan around that location for focused reinspection. Drone footage files identify likely human locations from drone footage and generates a focused 4-waypoint re-survey plan centered on the detected person. Finally a PNG which shows the optimized flight route + heatmap.
 
 ### frameSplitting.py
 Uses OpenCV to take a video as input and output each frame (currently set to every 30th frame since our test drone footage was captured at 30 fps).
